@@ -74,8 +74,8 @@
   #lookStick { right: 26px; }
   .nub { position: absolute; top: 50%; left: 50%; width: 56px; height: 56px; margin: -28px 0 0 -28px;
     border-radius: 50%; background: rgba(255,255,255,.22); border: 2px solid rgba(255,255,255,.3); }
-  #touchBtns { position: absolute; bottom: 232px; right: 30px; display: flex; flex-direction: column; gap: 12px;
-    pointer-events: auto; }
+  #touchBtns { position: absolute; bottom: 232px; right: 30px; display: grid; grid-template-columns:repeat(2,64px);
+    grid-auto-rows:64px; gap:8px; pointer-events: auto; }
   .tbtn { width: 64px; height: 64px; border-radius: 50%; border: 2px solid rgba(255,255,255,.25);
     background: rgba(20,10,10,.55); color: #ddd; font-family: inherit; font-size: 13px; font-weight: bold;
     letter-spacing: 1px; touch-action: none; -webkit-user-select: none; user-select: none; }
@@ -111,9 +111,9 @@
   .stats { margin-top: 22px; display: flex; flex-direction: column; gap: 6px; }
 
   /* ---------- Film grain / atmosphere overlay ---------- */
-  #grain { position: fixed; inset: 0; z-index: 55; pointer-events: none; opacity: 0.05;
+  #grain { position: fixed; inset: 0; z-index: 55; pointer-events: none; opacity: 0.025;
     background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
-    mix-blend-mode: overlay; animation: grainShift 0.4s steps(2) infinite; }
+    mix-blend-mode: overlay; }
   @keyframes grainShift { 0%{transform:translate(0,0)} 50%{transform:translate(-2%,1%)} 100%{transform:translate(1%,-1%)} }
 
   /* ---------- Enhanced lobby ---------- */
@@ -160,6 +160,27 @@
     background:rgba(10,0,0,.4); padding:8px 16px; border-radius:3px; border:1px solid rgba(139,0,0,.3); }
   #dialogueBox.ai #dialogueSpeaker::after { content:" [AI]"; opacity:.6; }
 
+  /* Readable found evidence: restrained, diegetic, and never blocks the view. */
+  #notePanel { position:fixed; left:50%; bottom:22%; transform:translateX(-50%); width:min(520px,88vw);
+    display:none; padding:18px 22px; color:#d4c8ae; background:rgba(13,11,9,.94);
+    border:1px solid rgba(190,165,120,.38); box-shadow:0 12px 48px rgba(0,0,0,.65);
+    pointer-events:none; text-align:left; }
+  #notePanel.show { display:block; animation:noteReveal .28s ease-out; }
+  #noteTitle { color:#b18d61; font-size:11px; letter-spacing:3px; margin-bottom:10px; }
+  #noteBody { font-family:Georgia,serif; font-size:15px; line-height:1.65; white-space:pre-wrap; }
+  #noteFooter { margin-top:12px; color:#786b5c; font-size:9px; letter-spacing:2px; text-align:right; }
+  @keyframes noteReveal { from{opacity:0;transform:translate(-50%,8px)} to{opacity:1;transform:translate(-50%,0)} }
+
+  #pauseScreen { position:fixed; inset:0; z-index:80; display:none; align-items:center; justify-content:center;
+    padding:20px; background:rgba(0,0,0,.78); backdrop-filter:blur(3px); }
+  #pauseScreen.show { display:flex; }
+  #pauseInner { width:100%; max-width:380px; padding:28px; background:#100e0d; border:1px solid #432525;
+    box-shadow:0 0 60px rgba(0,0,0,.9); text-align:center; }
+  #pauseInner .title { font-size:28px; margin-bottom:12px; }
+  #pauseInner p { color:#8f8780; font-size:12px; line-height:1.7; margin:0 0 18px; }
+  body.low-fx #pauseScreen { backdrop-filter:none; }
+
+
   /* ---------- Pause hint ---------- */
   #pauseHint { position:absolute; top: 24px; left:50%; transform:translateX(-50%);
     font-size:11px; color:rgba(255,255,255,.3); letter-spacing:2px; }
@@ -180,7 +201,7 @@
   body.is-mobile #pauseHint { font-size:10px; top: 12px; }
   body.is-mobile .stick { bottom: 70px; width: 110px; height: 110px; }
   body.is-mobile #moveStick { left: 18px; }
-  body.is-mobile #touchBtns { bottom: 190px; right: 22px; gap: 10px; }
+  body.is-mobile #touchBtns { bottom: 150px; right: 22px; grid-template-columns:repeat(2,56px); grid-auto-rows:56px; gap:8px; }
   body.is-mobile .tbtn { width: 56px; height: 56px; font-size: 11px; }
   body.is-mobile #dialogueBox { bottom: 150px; width: 92%; }
   body.is-mobile #message { top: 58%; font-size: 16px; }
@@ -261,9 +282,13 @@
     </div>
 
     <div id="message"></div>
+    <div id="notePanel" role="status" aria-live="polite">
+      <div id="noteTitle"></div><div id="noteBody"></div>
+      <div id="noteFooter">PRESS E OR ESC TO CLOSE</div>
+    </div>
     <div id="dialogueBox"><div id="dialogueSpeaker">???</div><div id="dialogueText"></div></div>
     <div id="pauseHint">ESC to pause · M map</div>
-    <div id="controls">WASD move · Q/◀▶ turn · ▲▼ look · SHIFT run · F flashlight · E interact · M map</div>
+    <div id="controls">WASD move · Q/◀▶ turn · ▲▼ look · SHIFT run · F flashlight · E interact/read · G drop key · ESC pause · M map</div>
 
     <!-- Mobile touch controls -->
     <div id="touch">
@@ -271,6 +296,8 @@
       <div id="touchBtns">
         <button class="tbtn" id="btnRun">RUN</button>
         <button class="tbtn" id="btnInteract" style="background:rgba(120,80,0,.65);border-color:rgba(255,200,80,.5);font-size:11px">✋</button>
+        <button class="tbtn" id="btnDrop" aria-label="Drop a key">DROP</button>
+        <button class="tbtn" id="btnPause" aria-label="Pause game">Ⅱ</button>
         <button class="tbtn" id="btnFlash">🔦</button>
         <button class="tbtn" id="btnMap">MAP</button>
       </div>
@@ -363,6 +390,13 @@
       <div class="btn-container" style="margin-top:20px">
         <button class="btn" id="settingsCloseBtn">SAVE &amp; CLOSE</button>
       </div>
+    </div>
+  </div>
+  <div id="pauseScreen" role="dialog" aria-modal="true" aria-label="Paused">
+    <div id="pauseInner">
+      <div class="title">PAUSED</div>
+      <p>The house is quiet for now.<br>Press Escape or choose Resume when you are ready.</p>
+      <button class="btn" id="resumeBtn">RESUME</button>
     </div>
   </div>
 <script>
@@ -53541,37 +53575,31 @@ function generateMaze() {
     if(openNeighbors >= 2) g[r][c] = '.';
   }
   
-  // ===== ENHANCEMENT 3B: Dead-end trap corridors =====
-  // Create 3-5 corridors that look like escape routes but end in walls (traps!)
-  // These add danger - player might run down one thinking it's an escape
+  // ===== ENHANCEMENT 3B: Quiet dead-end branches =====
+  // Carve short branches only through untouched wall cells. This keeps the
+  // original maze's connected routes intact while still creating believable
+  // false leads and places for a sound to stop.
   const numTraps = 3 + Math.floor(Math.random() * 3);
-  for(let i = 0; i < numTraps; i++){
-    const horizontal = Math.random() < 0.5;
-    const len = 5 + Math.floor(Math.random() * 6); // 5-10 cells long (long enough to commit)
-    if(horizontal){
-      const r = 3 + Math.floor(Math.random() * (gridH - 6));
-      const startC = 2 + Math.floor(Math.random() * (gridW - len - 4));
-      // Carve a corridor
-      for(let c = startC; c < startC + len && c < gridW - 2; c++){
-        g[r][c] = '.';
-      }
-      // Ensure the end is walled off (trap!)
-      const endC = Math.min(startC + len, gridW - 3);
-      g[r][endC] = '#';
-      // Also block above/below at the end to prevent escape
-      if(r > 1) g[r-1][endC] = '#';
-      if(r < gridH-2) g[r+1][endC] = '#';
-    } else {
-      const c = 3 + Math.floor(Math.random() * (gridW - 6));
-      const startR = 2 + Math.floor(Math.random() * (gridH - len - 4));
-      for(let r = startR; r < startR + len && r < gridH - 2; r++){
-        g[r][c] = '.';
-      }
-      const endR = Math.min(startR + len, gridH - 3);
-      g[endR][c] = '#';
-      if(c > 1) g[endR][c-1] = '#';
-      if(c < gridW-2) g[endR][c+1] = '#';
+  const trapDirs = [[1,0],[-1,0],[0,1],[0,-1]];
+  let trapBranches = 0;
+  for(let tries=0; tries<1800 && trapBranches<numTraps; tries++){
+    const r=1+Math.floor(Math.random()*(gridH-2));
+    const c=1+Math.floor(Math.random()*(gridW-2));
+    if(g[r][c]!=='.') continue;
+    const [dr,dc]=trapDirs[(Math.random()*trapDirs.length)|0];
+    const len=3+Math.floor(Math.random()*4);
+    let valid=true;
+    for(let step=1;step<=len;step++){
+      const nr=r+dr*step,nc=c+dc*step;
+      if(nr<1||nr>=gridH-1||nc<1||nc>=gridW-1||g[nr][nc]!=='#'){valid=false;break;}
+      // Leave only the previous/next cells open so this stays a true dead end.
+      if(dr===0 ? (g[nr-1][nc]!== '#' || g[nr+1][nc]!== '#')
+                : (g[nr][nc-1]!== '#' || g[nr][nc+1]!== '#')){valid=false;break;}
     }
+    const endR=r+dr*(len+1),endC=c+dc*(len+1);
+    if(!valid || endR<0 || endR>=gridH || endC<0 || endC>=gridW || g[endR][endC]!== '#') continue;
+    for(let step=1;step<=len;step++) g[r+dr*step][c+dc*step]='.';
+    trapBranches++;
   }
 
   // ===== ENHANCEMENT 4: Central hub (large open area in the middle) =====
@@ -53771,27 +53799,56 @@ function neighbors(c,r){
   }
   return out;
 }
+// Static tactical map data is computed once, rather than rescanning every cell in the AI loop.
+const deadEndCells=[], cornerCells=[], junctionCells=[];
+for(let r=1;r<ROWS-1;r++) for(let c=1;c<COLS-1;c++){
+  if(grid[r][c]!==0) continue;
+  let open=0, wallsAround=0;
+  for(const [dc,dr] of [[1,0],[-1,0],[0,1],[0,-1]]){
+    const ch=grid[r+dr][c+dc]; if(ch===0) open++; else wallsAround++;
+  }
+  const [x,z]=g2w(c,r), cell={x,z,c,r};
+  if(open<=1) deadEndCells.push(cell);
+  if(wallsAround>=2 && open>=2) cornerCells.push(cell);
+  if(open>=3) junctionCells.push(cell);
+}
+const pathQueue=new Int32Array(ROWS*COLS);
+const pathParent=new Int32Array(ROWS*COLS);
+const pathVisitStamp=new Int32Array(ROWS*COLS);
+let pathSearchVersion=0;
 function nextStep(sx,sz,gx,gz){
   const [sc,sr]=w2g(sx,sz), [gc,gr]=w2g(gx,gz);
   if(sc===gc&&sr===gr) return null;
-  const key=(c,r)=>c+","+r;
-  const q=[[sc,sr]], came=new Map(); came.set(key(sc,sr),null);
+  if(sc<0||sc>=COLS||sr<0||sr>=ROWS||gc<0||gc>=COLS||gr<0||gr>=ROWS) return null;
+  if(grid[sr][sc]!==0||grid[gr][gc]!==0) return null;
+  const start=sr*COLS+sc, goal=gr*COLS+gc;
+  pathSearchVersion++;
+  if(pathSearchVersion>=2147483000){ pathVisitStamp.fill(0); pathSearchVersion=1; }
+  const stamp=pathSearchVersion;
+  let head=0, tail=0;
+  pathQueue[tail++]=start; pathVisitStamp[start]=stamp; pathParent[start]=-1;
   let found=false;
-  let iterations = 0;
-  const maxIterations = 500; // Safety limit to prevent infinite loops
-  while(q.length && iterations < maxIterations){
-    iterations++;
-    const [c,r]=q.shift();
-    if(c===gc&&r===gr){found=true;break;}
-    for(const [nc,nr] of neighbors(c,r)){
-      const k=key(nc,nr);
-      if(!came.has(k)){ came.set(k,[c,r]); q.push([nc,nr]); }
+  while(head<tail){
+    const node=pathQueue[head++];
+    if(node===goal){ found=true; break; }
+    const r=(node/COLS)|0, c=node-r*COLS;
+    // Explicit neighbor checks avoid allocating arrays/Maps and never use Array.shift().
+    for(let direction=0;direction<4;direction++){
+      let next;
+      if(direction===0) next=c+1<COLS?node+1:-1;
+      else if(direction===1) next=c>0?node-1:-1;
+      else if(direction===2) next=r+1<ROWS?node+COLS:-1;
+      else next=r>0?node-COLS:-1;
+      if(next<0||pathVisitStamp[next]===stamp) continue;
+      const nr=(next/COLS)|0,nc=next-nr*COLS;
+      if(grid[nr][nc]!==0) continue;
+      pathVisitStamp[next]=stamp;pathParent[next]=node;pathQueue[tail++]=next;
     }
   }
   if(!found) return null;
-  let cur=[gc,gr], prev=came.get(key(gc,gr));
-  while(prev && !(prev[0]===sc&&prev[1]===sr)){ cur=prev; prev=came.get(key(cur[0],cur[1])); }
-  return g2w(cur[0],cur[1]);
+  let cur=goal, prev=pathParent[cur];
+  while(prev!==start && prev>=0){ cur=prev; prev=pathParent[cur]; }
+  return g2w(cur%COLS,(cur/COLS)|0);
 }
 function randomOpenCell(){
   if (floorCells.length === 0) return monsterStart;
@@ -53807,8 +53864,10 @@ function getRandomFloorCell(minDistFromPlayer = 0) {
   return valid[Math.floor(Math.random() * valid.length)];
 }
 // Find cells with 2+ open neighbors (NOT dead ends) - safe item placement
-function getSafeFloorCell(minDistFromPlayer = 0) {
+function getSafeFloorCell(minDistFromPlayer = 0, occupiedCells = null) {
   let valid = floorCells.filter(f => {
+    const [fc,fr]=w2g(f.x,f.z);
+    if(occupiedCells && occupiedCells.has(fr*COLS+fc)) return false;
     const d = Math.hypot(f.x - playerP.x, f.z - playerP.z);
     if(d < minDistFromPlayer) return false;
     // Count open neighbors (must have 2+ to not be a dead end)
@@ -53820,7 +53879,10 @@ function getSafeFloorCell(minDistFromPlayer = 0) {
     }
     return openNeighbors >= 2;
   });
-  if(valid.length === 0) return getRandomFloorCell(minDistFromPlayer);
+  if(valid.length === 0) {
+    const fallback=floorCells.find(f=>!occupiedCells||!occupiedCells.has(w2g(f.x,f.z)[1]*COLS+w2g(f.x,f.z)[0]));
+    return fallback || getRandomFloorCell(minDistFromPlayer);
+  }
   return valid[Math.floor(Math.random() * valid.length)];
 }
 // Check if a ghost spawn position would block the player's path to their nearest objective.
@@ -53845,14 +53907,18 @@ function isBlockingPlayerPath(gx, gz) {
 function spawnItemsAndGhost() {
   items.forEach(it => { if (it.group) scene.remove(it.group); });
   items.length = 0;
-  // Keys placed in SAFE positions (not dead ends) - player always has an escape route
+  const occupiedCells=new Set();
+  let keySerial=1;
+  // Keys and batteries occupy distinct open cells; this avoids overlapping pickups and unreachable stacks.
   for (let i = 0; i < TOTAL_KEYS; i++) {
-    const cell = getSafeFloorCell(12);
-    items.push(makeKey(cell.x, cell.z));
+    const cell = getSafeFloorCell(12,occupiedCells);
+    const [c,r]=w2g(cell.x,cell.z); occupiedCells.add(r*COLS+c);
+    items.push(makeKey(cell.x,cell.z,`key-${keySerial++}`));
   }
   for (let i = 0; i < 4; i++) {
-    const cell = getSafeFloorCell(5);
-    items.push(makeBat(cell.x, cell.z));
+    const cell = getSafeFloorCell(5,occupiedCells);
+    const [c,r]=w2g(cell.x,cell.z); occupiedCells.add(r*COLS+c);
+    items.push(makeBat(cell.x,cell.z));
   }
   // Ghost spawn: FAR from the player, no line-of-sight. She should never spawn
   // where the player can immediately see or hear her. Minimum distance is the
@@ -53993,8 +54059,8 @@ function pickWanderGoal(){
   let best = null, bestScore = -Infinity;
   for(let tries=0; tries<10; tries++){
     const cell = floorCells[(Math.random()*floorCells.length)|0];
-    const key = cell.x.toFixed(1)+","+cell.z.toFixed(1);
-    const lastVisit = mon.visited.get(key) || 0;
+    const [cellC,cellR]=w2g(cell.x,cell.z);
+    const lastVisit = mon.visited.get(cellC+","+cellR) || 0;
     const staleness = now - lastVisit; // bigger = not visited in a while = more attractive
     const distFromPlayer = Math.hypot(cell.x-playerP.x, cell.z-playerP.z);
     // slight bias toward areas nearer the player keeps her a credible threat,
@@ -54013,138 +54079,52 @@ const TOTAL_KEYS = 3;
 const DIFFICULTY = {
   normal: {
     label:"EASY", wander:2.5, chase:4.2, sprint:5.5, detect:30, sightRange:35,
-    batteryDrain:0.15, batteryGain:40, blink:false, traps:3, scareEvery:[14000,12000],
+    batteryDrain:0.15, batteryGain:40, blink:false, traps:3, scareEvery:[22000,16000],
     desc:"She is slow. Recommended for beginners.",
   },
   hard: {
     label:"HARD", wander:3.2, chase:5.5, sprint:6.8, detect:40, sightRange:45,
-    batteryDrain:0.15, batteryGain:40, blink:true, traps:6, scareEvery:[9000,7000],
+    batteryDrain:0.15, batteryGain:40, blink:true, traps:6, scareEvery:[16000,11000],
     desc:"She hunts smarter, faster, and uses feints. She blinks closer.",
   },
   nightmare: {
     label:"NIGHTMARE", wander:4.0, chase:7.0, sprint:8.5, detect:55, sightRange:60,
-    batteryDrain:0.15, batteryGain:40, blink:true, traps:9, scareEvery:[5000,4000],
+    batteryDrain:0.15, batteryGain:40, blink:true, traps:9, scareEvery:[12000,9000],
     desc:"Relentless. She feints, she stalks, she checks dead ends. Pure horror.",
   },
 };
 let DIFF = DIFFICULTY.normal; // current
 
-// ==================== AI GHOST INTELLIGENCE SYSTEM ====================
-const AIGhost = {
-  pipeline: null,
-  loading: false,
-  loaded: false,
-  error: null,
-  lastDecision: null,
-  playerPatterns: [],
-  decisionHistory: [],
-  
-  async load() {
-    if (this.loaded || this.loading) return;
-    if (!window.transformersPipeline) {
-      console.error('Transformers.js not loaded - AI mode unavailable');
-      this.error = 'Transformers.js failed to load';
-      return;
-    }
-    this.loading = true;
-    try {
-      console.log('Loading Pythia 50M model...');
-      this.pipeline = await window.transformersPipeline('text-generation', 'Xenova/pythia-70m-deduped', {
-        quantized: 'int4', // Use int4 quantization for optimal performance
-        progress_callback: (progress) => {
-          if (progress.status === 'progress') {
-            console.log(`Loading AI: ${Math.round(progress.progress)}%`);
-          }
-        }
-      });
-      this.loaded = true;
-      this.loading = false;
-      console.log('AI model loaded successfully!');
-    } catch (err) {
-      console.error('Failed to load AI model:', err);
-      this.error = err.message;
-      this.loading = false;
-    }
+// Local adaptive director: observes a few samples per second, adapts without model downloads or network latency.
+const GhostDirector={
+  runHabit:0,hideHabit:0,stillHabit:0,repeatRoute:0,sampleTimer:0,lastCell:-1,
+  observe(dt,running,moving,hiding){
+    this.sampleTimer-=dt;
+    if(this.sampleTimer>0) return;
+    this.sampleTimer=0.8;
+    const blend=0.16;
+    this.runHabit=this.runHabit*(1-blend)+(running?blend:0);
+    this.hideHabit=this.hideHabit*(1-blend)+(hiding?blend:0);
+    this.stillHabit=this.stillHabit*(1-blend)+(!moving&&!hiding?blend:0);
+    const [c,r]=w2g(playerP.x,playerP.z),cell=r*COLS+c;
+    this.repeatRoute=cell===this.lastCell?Math.min(1,this.repeatRoute+0.16):Math.max(0,this.repeatRoute-0.1);
+    this.lastCell=cell;
   },
-  
-  async decide(context) {
-    if (!this.loaded || !this.pipeline) {
-      return this.fallbackDecision(context);
-    }
-    
-    try {
-      const prompt = this.buildPrompt(context);
-      const output = await this.pipeline(prompt, {
-        max_new_tokens: 20,
-        temperature: 0.8,
-        do_sample: true,
-      });
-      
-      const decision = this.parseDecision(output[0].generated_text);
-      this.decisionHistory.push({ context, decision, time: Date.now() });
-      if (this.decisionHistory.length > 10) this.decisionHistory.shift();
-      
-      return decision;
-    } catch (err) {
-      console.error('AI decision error:', err);
-      return this.fallbackDecision(context);
-    }
-  },
-  
-  buildPrompt(context) {
-    const { playerDist, playerMoving, playerHiding, lastSeen, ghostState } = context;
-    return `Ghost AI decision:
-Player distance: ${playerDist.toFixed(1)} units
-Player moving: ${playerMoving}
-Player hiding: ${playerHiding}
-Last seen: ${lastSeen ? 'yes' : 'no'}
-Current state: ${ghostState}
-
-Ghost should:`;
-  },
-  
-  parseDecision(text) {
-    const lower = text.toLowerCase();
-    if (lower.includes('chase') || lower.includes('hunt')) return 'CHASE';
-    if (lower.includes('stalk') || lower.includes('watch')) return 'STALK';
-    if (lower.includes('search') || lower.includes('find')) return 'SEARCH';
-    if (lower.includes('feint') || lower.includes('trick')) return 'FEINT';
-    if (lower.includes('patrol') || lower.includes('wander')) return 'PATROL';
-    return 'CHASE';
-  },
-  
-  fallbackDecision(context) {
-    const { playerDist, playerMoving, lastSeen } = context;
-    if (playerDist < 15 && lastSeen) return 'CHASE';
-    if (playerDist < 25 && playerMoving) return 'STALK';
-    if (lastSeen) return 'SEARCH';
-    return 'PATROL';
-  },
-  
-  recordPlayerAction(action) {
-    this.playerPatterns.push({ action, time: Date.now() });
-    if (this.playerPatterns.length > 50) this.playerPatterns.shift();
-  },
-  
-  predictPlayerBehavior() {
-    if (this.playerPatterns.length < 5) return null;
-    const recent = this.playerPatterns.slice(-10);
-    const actions = recent.map(p => p.action);
-    const mostCommon = actions.sort((a,b) =>
-      actions.filter(v => v===a).length - actions.filter(v => v===b).length
-    ).pop();
-    return mostCommon;
-  }
+  reset(){this.runHabit=0;this.hideHabit=0;this.stillHabit=0;this.repeatRoute=0;this.sampleTimer=0;this.lastCell=-1;}
 };
 
 const S = {}; // mutable state
 function resetState(){
-  S.status="menu";          // menu | playing | won | dead
+  S.status="menu";          // menu | playing | paused | won | dead
   S.flashOn=true;
   S.battery=100;
   S.batteries=0;
+  S.inventory={keys:[],batteries:0};
   S.keys=0;
   S.doorUnlocked=false;
+  S.keyRecoveryCount=0;
+  S.readingNote=false;
+  S.activeNote=null;
   S.sanity=100;
   S.monDist=999;
   S.startTime=0; S.endTime=0;
@@ -54155,6 +54135,15 @@ function resetState(){
   S.hidingCloset=null;      // which closet spot the player is hiding in
   S.hideT=0;                // timestamp when player entered the closet
   S.monStalking=false; S.locationRevealed=false;      // is the ghost in STALK state (watching from afar)
+}
+function syncInventory(){
+  if(!S.inventory) S.inventory={keys:[],batteries:0};
+  const validIds=new Set(items.filter(item=>item.type==="key").map(item=>item.keyId));
+  S.inventory.keys=[...new Set(S.inventory.keys.filter(id=>id&&validIds.has(id)))].slice(0,TOTAL_KEYS);
+  S.inventory.batteries=Math.max(0,S.inventory.batteries|0);
+  S.keys=S.inventory.keys.length;
+  S.batteries=S.inventory.batteries;
+  S.doorUnlocked=S.keys>=TOTAL_KEYS;
 }
 resetState();
 
@@ -54203,19 +54192,22 @@ function applySettings(){
 /* ---------------- Graphics quality presets (for weak/"potato" phones) ---------------- */
 const GFX_PRESETS = {
   low: {
-    label:"LOW", shadows:false, shadowMapSize:512, pixelRatioCap:1.0, antialias:false,
-    fog:false, grain:false, blur:false, redLightCount:3, particleCount:0, bloodDecals:0,
-    paintingCount:0, trapTeeth:0, wallSegments:1, flashDistance:45, minimapFPS:4,
+    label:"LOW", shadows:false, shadowMapSize:512, pixelRatioCap:0.95, antialias:false,
+    fog:false, grain:false, blur:false, redLightCount:2, particleCount:0, dustCount:0,
+    bloodDecals:0, paintingCount:0, propCount:5, noteCount:2, trapTeeth:0, textureAnisotropy:1,
+    flashDistance:42, minimapFPS:4,
   },
   medium: {
-    label:"MEDIUM", shadows:true, shadowMapSize:1024, pixelRatioCap:1.25, antialias:false,
-    fog:true, grain:true, blur:false, redLightCount:5, particleCount:35, bloodDecals:6,
-    paintingCount:4, trapTeeth:6, wallSegments:1, flashDistance:55, minimapFPS:10,
+    label:"MEDIUM", shadows:true, shadowMapSize:1024, pixelRatioCap:1.1, antialias:false,
+    fog:true, grain:true, blur:false, redLightCount:4, particleCount:20, dustCount:24,
+    bloodDecals:5, paintingCount:3, propCount:12, noteCount:4, trapTeeth:6, textureAnisotropy:2,
+    flashDistance:50, minimapFPS:8,
   },
   high: {
-    label:"HIGH", shadows:true, shadowMapSize:2048, pixelRatioCap:1.75, antialias:true,
-    fog:true, grain:true, blur:true, redLightCount:8, particleCount:70, bloodDecals:10,
-    paintingCount:7, trapTeeth:10, wallSegments:1, flashDistance:70, minimapFPS:30,
+    label:"HIGH", shadows:true, shadowMapSize:1024, pixelRatioCap:1.35, antialias:false,
+    fog:true, grain:true, blur:true, redLightCount:6, particleCount:36, dustCount:44,
+    bloodDecals:8, paintingCount:5, propCount:20, noteCount:5, trapTeeth:8, textureAnisotropy:4,
+    flashDistance:58, minimapFPS:15,
   },
 };
 function pickAutoGfx(){
@@ -54223,19 +54215,26 @@ function pickAutoGfx(){
   if(IS_MOBILE) return "medium";
   return "high";
 }
-let GFX_QUALITY = SETTINGS.gfx || pickAutoGfx();
+let GFX_QUALITY = GFX_PRESETS[SETTINGS.gfx] ? SETTINGS.gfx : pickAutoGfx();
+if(!GFX_PRESETS[SETTINGS.gfx]) SETTINGS.gfx=null;
 let GFX = GFX_PRESETS[GFX_QUALITY];
 
 /* ---------------- Procedural audio (Web Audio) ---------------- */
 let actx=null, master=null, ambStarted=false, heartTimer=null, heartIntensity=0;
 function initAudio(){
   if(actx) return;
-  actx = new (window.AudioContext||window.webkitAudioContext)();
-  master = actx.createGain(); 
-  master.gain.value = 0.7; // Lower master volume to prevent clipping
-  // Connect to compressor instead of directly to destination
-  precomputeNoiseBuffers();
-  master.connect(audioCompressor);
+  const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+  if(!AudioContextClass) return; // Audio is optional; never prevent the game from starting.
+  try {
+    actx = new AudioContextClass();
+    master = actx.createGain();
+    master.gain.value = 0.7;
+    precomputeNoiseBuffers();
+    master.connect(audioCompressor);
+  } catch(err) {
+    console.warn("Web Audio unavailable; continuing without sound.", err);
+    actx = null; master = null; noiseBuffers = null; audioCompressor = null;
+  }
 }
 
 // Pre-generate all noise buffers ONCE at startup instead of allocating a fresh
@@ -54323,22 +54322,23 @@ function startAmbience(){
   startBreathing();
 }
 function startHeartbeat(){
-  if(!actx||heartTimer) return;
+  if(!actx || heartTimer || heartIntensity<=0.02) return;
   const beat=()=>{
-    if(heartIntensity<=0.02) return;
+    if(!actx || heartIntensity<=0.02) return;
     const t=actx.currentTime, g=actx.createGain(), o=actx.createOscillator();
     o.type="sine"; o.frequency.setValueAtTime(60,t);
     o.frequency.exponentialRampToValueAtTime(36,t+0.18);
-    const v=0.25+heartIntensity*0.6;
+    const v=0.12+heartIntensity*0.35;
     g.gain.setValueAtTime(0.0001,t);
     g.gain.exponentialRampToValueAtTime(v,t+0.02);
     g.gain.exponentialRampToValueAtTime(0.0001,t+0.22);
     o.connect(g).connect(master); o.start(t); o.stop(t+0.25);
   };
   const sched=()=>{
+    if(!actx || heartIntensity<=0.02){ heartTimer=null; return; }
     beat(); setTimeout(beat,180);
     const bpm=50+heartIntensity*90;
-    heartTimer=setTimeout(sched, Math.max(350,(60/bpm)*1000));
+    heartTimer=setTimeout(()=>{ heartTimer=null; sched(); }, Math.max(420,(60/bpm)*1000));
   };
   sched();
 }
@@ -54515,26 +54515,17 @@ function ambientScare(){
     o.connect(g).connect(master); o.start(t); o.stop(t+0.55);
     hiss();
   } else if (scareType < 0.5) {
-    // Whisper effect
-    const bufSize = actx.sampleRate * 0.8;
-    const buf = actx.createBuffer(1, bufSize, actx.sampleRate);
-    const data = buf.getChannelData(0);
-    for(let i = 0; i < bufSize; i++){
-      data[i] = (Math.random() - 0.5) * Math.sin(i / bufSize * Math.PI) * 0.3;
+    // Reuse the precomputed hiss buffer rather than allocating/filling one on a scare.
+    if(noiseBuffers){
+      const src = actx.createBufferSource(); src.buffer = noiseBuffers.hiss;
+      const filter = actx.createBiquadFilter(); filter.type = 'bandpass';
+      filter.frequency.value = 800 + Math.random() * 400; filter.Q.value = 5;
+      const gain = actx.createGain();
+      gain.gain.setValueAtTime(0.0001, t);
+      gain.gain.exponentialRampToValueAtTime(0.1, t + 0.1);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.45);
+      src.connect(filter).connect(gain).connect(master); src.start(t);
     }
-    const src = actx.createBufferSource();
-    src.buffer = buf;
-    const filter = actx.createBiquadFilter();
-    filter.type = 'bandpass';
-    filter.frequency.value = 800 + Math.random() * 400;
-    filter.Q.value = 5;
-    const gain = actx.createGain();
-    gain.gain.setValueAtTime(0, t);
-    gain.gain.linearRampToValueAtTime(0.15, t + 0.1);
-    gain.gain.linearRampToValueAtTime(0, t + 0.8);
-    src.connect(filter).connect(gain).connect(master);
-    src.start(t);
-    src.stop(t + 0.8);
   } else if (scareType < 0.75) {
     // Distant metallic creak
     const osc = actx.createOscillator();
@@ -54552,24 +54543,16 @@ function ambientScare(){
     osc.start(t);
     osc.stop(t + 0.6);
   } else {
-    // Heavy breathing
-    const bufSize = actx.sampleRate * 1.2;
-    const buf = actx.createBuffer(1, bufSize, actx.sampleRate);
-    const data = buf.getChannelData(0);
-    for(let i = 0; i < bufSize; i++){
-      const env = Math.sin(i / bufSize * Math.PI * 3) * Math.sin(i / bufSize * Math.PI);
-      data[i] = (Math.random() - 0.5) * env * 0.4;
+    // A short layer from the precomputed breath buffer keeps the event procedural but allocation-free.
+    if(noiseBuffers){
+      const src = actx.createBufferSource(); src.buffer = noiseBuffers.breath;
+      const filter = actx.createBiquadFilter(); filter.type = 'lowpass'; filter.frequency.value = 600;
+      const gain = actx.createGain();
+      gain.gain.setValueAtTime(0.0001, t);
+      gain.gain.exponentialRampToValueAtTime(0.16, t + 0.12);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + 1.1);
+      src.connect(filter).connect(gain).connect(master); src.start(t); src.stop(t + 1.15);
     }
-    const src = actx.createBufferSource();
-    src.buffer = buf;
-    const filter = actx.createBiquadFilter();
-    filter.type = 'lowpass';
-    filter.frequency.value = 600;
-    const gain = actx.createGain();
-    gain.gain.value = 0.25;
-    src.connect(filter).connect(gain).connect(master);
-    src.start(t);
-    src.stop(t + 1.2);
   }
   
   // Visual scare - flicker lights
@@ -54595,56 +54578,64 @@ function winChime(){
 /* ---------------- Three.js setup ---------------- */
 const canvas=document.getElementById("c");
 const renderer=new WebGLRenderer({canvas,antialias:GFX.antialias,powerPreference:"high-performance"});
-renderer.setPixelRatio(Math.min(window.devicePixelRatio,GFX.pixelRatioCap));
-renderer.setSize(innerWidth,innerHeight);
 renderer.shadowMap.enabled=GFX.shadows;
 renderer.shadowMap.type=PCFSoftShadowMap;
+renderer.outputColorSpace=SRGBColorSpace;
+renderer.toneMapping=ACESFilmicToneMapping;
+renderer.toneMappingExposure=1.0;
+const MAX_RENDER_SCALE=Math.max(0.75,Math.min(window.devicePixelRatio||1,GFX.pixelRatioCap));
+let renderScale=MAX_RENDER_SCALE;
+function applyRenderScale(scale){
+  renderScale=Math.max(Math.min(0.72,MAX_RENDER_SCALE),Math.min(MAX_RENDER_SCALE,scale));
+  renderer.setPixelRatio(renderScale);
+  renderer.setSize(innerWidth,innerHeight,false);
+}
+applyRenderScale(renderScale);
+let resolutionSampleAt=performance.now(), resolutionFrameTotal=0, resolutionFrameCount=0;
+let resolutionOverBudget=0, resolutionHeadroom=0;
+function updateDynamicResolution(frameSeconds,now){
+  if(S.status!=="playing") return;
+  resolutionFrameTotal+=frameSeconds*1000; resolutionFrameCount++;
+  if(now-resolutionSampleAt<1500) return;
+  const average=resolutionFrameCount?resolutionFrameTotal/resolutionFrameCount:16.7;
+  resolutionSampleAt=now; resolutionFrameTotal=0; resolutionFrameCount=0;
+  if(average>21){
+    resolutionOverBudget++; resolutionHeadroom=0;
+    if(resolutionOverBudget>=2 && renderScale>Math.min(0.72,MAX_RENDER_SCALE)){
+      applyRenderScale(renderScale-0.08); resolutionOverBudget=0;
+    }
+  } else {
+    resolutionOverBudget=0;
+    if(average<14.5) resolutionHeadroom++; else resolutionHeadroom=0;
+    if(resolutionHeadroom>=6 && renderScale<MAX_RENDER_SCALE){
+      applyRenderScale(renderScale+0.04); resolutionHeadroom=0;
+    }
+  }
+}
 
 const scene=new Scene();
-scene.background=new Color(0x000000);
-if(GFX.fog) scene.fog=new FogExp2(0x070306, 0.048); // slightly less dense fog - can see further ahead for better navigation
+scene.background=new Color(0x030304);
+if(GFX.fog) scene.fog=new FogExp2(0x07070a, 0.036);
 
 const camera=new PerspectiveCamera(72,innerWidth/innerHeight,0.05,60);
 const EYE=1.65;
 camera.position.set(spawn[0],EYE,spawn[1]);
+const interactionRaycaster=new Raycaster();
+interactionRaycaster.near=0.05; interactionRaycaster.far=4.2;
+const interactionCrosshair=new Vector2(0,0);
 
 addEventListener("resize",()=>{
   camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix();
-  renderer.setSize(innerWidth,innerHeight);
+  applyRenderScale(renderScale);
 });
 
 /* lights */
 scene.add(new AmbientLight(0x110505,0.02)); // Darker, more atmospheric ambient
 scene.add(new HemisphereLight(0x0a0508,0x000000,0.04)); // Subtle sky/ground lighting
 
-// Volumetric fog planes for atmospheric depth
-const fogPlanes = [];
+// Distance fog is deliberately used instead of full-level transparent fog cards:
+// the cards blended over almost every pixel and were disproportionately expensive on mid-range GPUs.
 const planeW=COLS*CELL, planeD=ROWS*CELL;
-for (let i = 0; i < 5; i++) {
-  const fogGeo = new PlaneGeometry(planeW * 0.8, WALL_H * 0.6);
-  const fogMat = new MeshBasicMaterial({
-    color: 0x1a0a0a,
-    transparent: true,
-    opacity: 0.03 + i * 0.01,
-    blending: AdditiveBlending,
-    depthWrite: false,
-  });
-  const fogPlane = new Mesh(fogGeo, fogMat);
-  fogPlane.position.set(0, WALL_H * 0.3 + i * 0.4, 0);
-  fogPlane.rotation.x = Math.PI / 2;
-  fogPlane.renderOrder = 999;
-  scene.add(fogPlane);
-  fogPlanes.push(fogPlane);
-}
-
-// Animate fog planes
-function updateFog(time) {
-  fogPlanes.forEach((plane, i) => {
-    plane.position.x = Math.sin(time * 0.1 + i) * 2;
-    plane.position.z = Math.cos(time * 0.08 + i) * 2;
-    plane.material.opacity = 0.03 + Math.sin(time * 0.5 + i) * 0.01;
-  });
-}
 
 // flickering red emergency lights mounted near the ceiling in random corridors
 const redLights=[];
@@ -54658,6 +54649,9 @@ const redLights=[];
       L.position.set(x, WALL_H-0.3, z);
       L.userData.base = 1.5+Math.random()*1.2;
       L.userData.phase = Math.random()*10;
+      L.userData.nextFlicker = performance.now()+2000+Math.random()*5000;
+      L.userData.flickerUntil = 0;
+      L.userData.memoryFlickerUntil = 0;
       scene.add(L);
       // little glowing fixture
       const bulb=new Mesh(new SphereGeometry(0.08,8,8),
@@ -54668,10 +54662,18 @@ const redLights=[];
   }
 })();
 function updateRedLights(time){
+  const now=performance.now();
   for(const L of redLights){
-    // ominous flicker
-    const f = 0.6 + 0.4*Math.sin(time*8 + L.userData.phase) * (Math.random()<0.06?0.2:1);
-    L.intensity = L.userData.base * f;
+    const data=L.userData;
+    // Mostly steady, with occasional short electrical failures instead of frame-by-frame random noise.
+    if(now>=data.nextFlicker){
+      data.flickerUntil=now+55+Math.random()*115;
+      data.nextFlicker=now+4500+Math.random()*8500;
+    }
+    let flicker=0.82+0.18*Math.sin(time*5+data.phase);
+    if(now<data.flickerUntil) flicker*=0.08;
+    if(now<data.memoryFlickerUntil) flicker*=0.18+0.82*Math.abs(Math.sin(time*19+data.phase));
+    L.intensity=data.base*flicker;
   }
 }
 
@@ -54682,11 +54684,38 @@ function loadTex(url,repeatX,repeatY){
   t.wrapS=t.wrapT=RepeatWrapping;
   if(repeatX) t.repeat.set(repeatX,repeatY);
   t.colorSpace=SRGBColorSpace;
+  t.anisotropy=Math.min(GFX.textureAnisotropy,renderer.capabilities.getMaxAnisotropy());
+  return t;
+}
+function createTiledNormalTexture(seed,strength){
+  const size=64, canvas=document.createElement("canvas"); canvas.width=canvas.height=size;
+  const ctx=canvas.getContext("2d"), image=ctx.createImageData(size,size), height=new Float32Array(size*size);
+  for(let y=0;y<size;y++) for(let x=0;x<size;x++){
+    const u=x/size*Math.PI*2, v=y/size*Math.PI*2;
+    height[y*size+x]=Math.sin(u*4+seed)*Math.cos(v*4+seed*.7)*.55+
+      Math.sin((u+v)*8+seed*1.3)*.22+Math.cos((u-v)*12-seed)*.12;
+  }
+  for(let y=0;y<size;y++) for(let x=0;x<size;x++){
+    const i=y*size+x, l=y*size+(x+size-1)%size, r=y*size+(x+1)%size;
+    const u=((y+size-1)%size)*size+x, d=((y+1)%size)*size+x;
+    let nx=-(height[r]-height[l])*strength, ny=-(height[d]-height[u])*strength, nz=1;
+    const len=Math.hypot(nx,ny,nz); nx/=len; ny/=len; nz/=len;
+    const o=i*4; image.data[o]=(nx*.5+.5)*255; image.data[o+1]=(ny*.5+.5)*255;
+    image.data[o+2]=(nz*.5+.5)*255; image.data[o+3]=255;
+  }
+  ctx.putImageData(image,0,0);
+  const t=new CanvasTexture(canvas); t.wrapS=t.wrapT=RepeatWrapping; t.colorSpace=NoColorSpace;
+  t.anisotropy=Math.min(GFX.textureAnisotropy,renderer.capabilities.getMaxAnisotropy());
   return t;
 }
 const wallTex  = loadTex(ASSETS.wall, 1, 1);
 const floorTex = loadTex(ASSETS.floor, COLS/2, ROWS/2);
 const ceilTex  = loadTex(ASSETS.wall, COLS/2, ROWS/2);
+const wallNormalTex=createTiledNormalTexture(3,.34);
+const floorNormalTex=createTiledNormalTexture(11,.42);
+wallNormalTex.repeat.set(1,1);
+floorNormalTex.repeat.set(COLS/2,ROWS/2);
+const ceilNormalTex=wallNormalTex;
 
 /* world geometry */
 const worldGroup=new Group(); scene.add(worldGroup);
@@ -54696,6 +54725,7 @@ const worldGroup=new Group(); scene.add(worldGroup);
 const floor=new Mesh(new PlaneGeometry(planeW,planeD),
   new MeshStandardMaterial({
     map:floorTex,
+    normalMap:floorNormalTex,
     color:0x6a6258,
     roughness:0.95,
     metalness:0.05,
@@ -54709,6 +54739,7 @@ worldGroup.add(floor);
 const ceil=new Mesh(new PlaneGeometry(planeW,planeD),
   new MeshStandardMaterial({
     map:ceilTex,
+    normalMap:ceilNormalTex,
     color:0x2a261f,
     roughness:0.98,
     metalness:0.02,
@@ -54722,6 +54753,7 @@ worldGroup.add(ceil);
 const wallGeo=new BoxGeometry(CELL,WALL_H,CELL);
 const wallMat=new MeshStandardMaterial({
   map:wallTex,
+  normalMap:wallNormalTex,
   color:0x8a8378,
   roughness:0.92,
   metalness:0.08,
@@ -54746,26 +54778,38 @@ const playerGlow=new PointLight(0xffe9c0,0.6,9,2);
 scene.add(playerGlow);
 
 /* items (keys + batteries) */
-const items=[]; // {type,x,z,group,light,collected}
-function makeKey(x,z){
+const items=[]; // stable world-item records, including collected keys that can be dropped and picked up again
+function addInteractionTarget(group,item,radius=0.72,height=0.95){
+  const target=new Mesh(new SphereGeometry(radius,8,6),
+    new MeshBasicMaterial({color:0xffffff,transparent:true,opacity:0,colorWrite:false,depthWrite:false}));
+  target.visible=false; // Three.js raycasts still test invisible objects; it never adds a draw call.
+  target.position.y=height; target.name="interactionTarget"; group.add(target);
+  group.userData.interactionItem=item; item.hitTarget=target;
+}
+function makeKey(x,z,keyId){
   const grp=new Group(); grp.position.set(x,0,z);
-  const mat=new MeshStandardMaterial({color:0xffd34d,emissive:0xffae00,emissiveIntensity:1.4,metalness:0.8,roughness:0.3});
+  const mat=new MeshStandardMaterial({color:0xffd34d,emissive:0xffae00,emissiveIntensity:1.15,metalness:0.8,roughness:0.3});
   const ring=new Mesh(new TorusGeometry(0.18,0.06,8,16),mat); ring.castShadow=true;
   const shaft=new Mesh(new BoxGeometry(0.07,0.4,0.07),mat); shaft.position.y=-0.35;
   const tooth=new Mesh(new BoxGeometry(0.18,0.07,0.07),mat); tooth.position.set(0.12,-0.5,0);
   const spin=new Group(); spin.add(ring,shaft,tooth); grp.add(spin);
-  const light=new PointLight(0xffae00,3,5,2); light.position.y=1; grp.add(light);
+  const light=new PointLight(0xffae00,1.6,3.5,2); light.position.y=1; grp.add(light);
+  const item={type:"key",keyId,x,z,group:grp,spin,light,collected:false,dropped:false,
+    velocityX:0,velocityY:0,velocityZ:0,restHeight:0.17,hitTarget:null};
+  addInteractionTarget(grp,item,0.78,0.95);
   scene.add(grp);
-  return {type:"key",x,z,group:grp,spin,light,collected:false};
+  return item;
 }
 function makeBat(x,z){
   const grp=new Group(); grp.position.set(x,0,z);
-  const mat=new MeshStandardMaterial({color:0x7dff9a,emissive:0x22ff66,emissiveIntensity:1,metalness:0.6,roughness:0.4});
-  const cyl=new Mesh(new CylinderGeometry(0.16,0.16,0.42,16),mat); cyl.castShadow=true;
+  const mat=new MeshStandardMaterial({color:0x7dff9a,emissive:0x22ff66,emissiveIntensity:0.8,metalness:0.6,roughness:0.4});
+  const cyl=new Mesh(new CylinderGeometry(0.16,0.16,0.42,12),mat); cyl.castShadow=true;
   const spin=new Group(); spin.add(cyl); grp.add(spin);
-  const light=new PointLight(0x22ff66,3,5,2); light.position.y=1; grp.add(light);
+  const light=new PointLight(0x22ff66,1.6,3.5,2); light.position.y=1; grp.add(light);
+  const item={type:"battery",x,z,group:grp,spin,light,collected:false,dropped:false,hitTarget:null};
+  addInteractionTarget(grp,item,0.72,0.95);
   scene.add(grp);
-  return {type:"battery",x,z,group:grp,spin,light,collected:false};
+  return item;
 }
 
 /* exit door */
@@ -54967,7 +55011,7 @@ function createDebris(x, z) {
   ];
   
   // Random debris pieces
-  const numPieces = 5 + Math.floor(Math.random() * 8);
+  const numPieces = 3 + Math.floor(Math.random() * 4);
   for (let i = 0; i < numPieces; i++) {
     const mat = materials[Math.floor(Math.random() * materials.length)];
     const size = 0.1 + Math.random() * 0.3;
@@ -55005,7 +55049,7 @@ for (let r = 2; r < ROWS - 2; r++) {
       const distToExit = Math.hypot(wx - exitPos.x, wz - exitPos.z);
       
       // Don't place too close to spawn or exit
-      if (distToSpawn > 10 && distToExit > 8 && Math.random() < 0.08) {
+      if (propSpots.length < GFX.propCount && distToSpawn > 10 && distToExit > 8 && Math.random() < 0.12) {
         propSpots.push({x: wx, z: wz});
       }
     }
@@ -55031,7 +55075,7 @@ propSpots.forEach(spot => {
 /* =========== DUST PARTICLES (Atmospheric) =========== */
 const dustParticles = new Group();
 const dustGeo = new BufferGeometry();
-const dustCount = 500;
+const dustCount = GFX.dustCount;
 const dustPositions = new Float32Array(dustCount * 3);
 
 for (let i = 0; i < dustCount; i++) {
@@ -55047,22 +55091,27 @@ const dustMat = new PointsMaterial({
   size: 0.05,
   transparent: true,
   opacity: 0.3,
-  blending: AdditiveBlending,
+  blending: NormalBlending,
 });
 
 const dustSystem = new Points(dustGeo, dustMat);
+dustSystem.visible = dustCount > 0;
+dustGeo.attributes.position.setUsage(DynamicDrawUsage);
 dustParticles.add(dustSystem);
 scene.add(dustParticles);
 
 // Animate dust particles
-function updateDust(time) {
-  const positions = dustGeo.attributes.position.array;
-  for (let i = 0; i < dustCount; i++) {
-    positions[i * 3 + 1] += Math.sin(time + i) * 0.001; // Slow vertical drift
-    if (positions[i * 3 + 1] > WALL_H) positions[i * 3 + 1] = 0;
-    if (positions[i * 3 + 1] < 0) positions[i * 3 + 1] = WALL_H;
+let dustUpdateAt=0;
+function updateDust(time){
+  if(!dustCount || time-dustUpdateAt<0.08) return;
+  dustUpdateAt=time;
+  const positions=dustGeo.attributes.position.array;
+  for(let i=0;i<dustCount;i++){
+    positions[i*3+1]+=Math.sin(time+i)*0.001;
+    if(positions[i*3+1]>WALL_H) positions[i*3+1]=0;
+    if(positions[i*3+1]<0) positions[i*3+1]=WALL_H;
   }
-  dustGeo.attributes.position.needsUpdate = true;
+  dustGeo.attributes.position.needsUpdate=true;
 }
 const bloodMat = new MeshBasicMaterial({map:bloodTex,transparent:true,opacity:0.9,depthWrite:false,blending:NormalBlending});
 // scatter blood pools on open floor cells (count scales with graphics preset)
@@ -55088,6 +55137,8 @@ const wallMsg=new Mesh(new PlaneGeometry(3.4,3.4),
 /* =========== Creepy paintings mounted on walls =========== */
 const paintTex1 = texLoader.load(ASSETS.painting1); paintTex1.colorSpace=SRGBColorSpace;
 const paintTex2 = texLoader.load(ASSETS.painting2); paintTex2.colorSpace=SRGBColorSpace;
+const paintings=[];
+const evidenceNotes=[];
 function mountPainting(tex){
   // find an open cell that has at least one wall neighbour, then face the painting
   // outward from that wall into the corridor.
@@ -55101,25 +55152,120 @@ function mountPainting(tex){
       if(grid[nr][nc]===1){ // there's a wall in this direction -> hang on it
         const [x,z]=g2w(c,r);
         const sz2=1.5;
-        const mesh=new Mesh(
-          new PlaneGeometry(sz2, sz2),
-          new MeshStandardMaterial({map:tex, roughness:0.9, metalness:0,
-            emissive:0x080808, emissiveIntensity:0.4, side:DoubleSide})
-        );
+        const material=new MeshStandardMaterial({map:tex, roughness:0.94, metalness:0,
+          emissive:0x050505, emissiveIntensity:0.25, side:DoubleSide});
+        const mesh=new Mesh(new PlaneGeometry(sz2,sz2),material);
         // push it just in front of the wall face, at eye-ish height
         const off = CELL/2 - 0.06;
         mesh.position.set(x + dc*off, 1.7, z + dr*off);
         mesh.rotation.y = rotY;
         mesh.castShadow = true; mesh.receiveShadow = true;
         scene.add(mesh);
+        paintings.push({mesh,material,original:tex,alternate:tex===paintTex1?paintTex2:paintTex1});
         return true;
       }
     }
   }
   return false;
 }
-// hang a handful, alternating the two portraits (count scales with graphics preset)
+// Hang a handful of portraits. Their faces can subtly change when the same room is revisited.
 for(let i=0;i<GFX.paintingCount;i++) mountPainting(i%2 ? paintTex2 : paintTex1);
+
+/* =========== Research logs, personal notes, and ritual traces =========== */
+const EVIDENCE_LOGS=[
+  {title:"WARD B · NIGHT SHIFT",text:"The corridor is longer after midnight. I measured it twice. The paint marks are still there, but the door is not."},
+  {title:"FIELD NOTE 08",text:"If you hear your name from an empty room, do not answer. The recording says it in my voice now."},
+  {title:"RECOVERY REPORT",text:"Three keys were logged in. The lock opened from the inside. No one remembers entering the ward."},
+  {title:"UNSIGNED LETTER",text:"Mara, I left the lamp on like you asked. Someone keeps turning it toward the wall."},
+  {title:"RESEARCH FRAGMENT",text:"Subject remembers the house before arrival. Do not show them the photographs. They recognize the rooms."},
+];
+function makeEvidenceTexture(entry,index){
+  const paper=document.createElement("canvas"); paper.width=paper.height=512;
+  const ctx=paper.getContext("2d");
+  ctx.fillStyle="#b9ad91"; ctx.fillRect(0,0,512,512);
+  ctx.fillStyle="rgba(70,53,37,.10)";
+  for(let i=0;i<36;i++) ctx.fillRect((i*83+index*29)%512,(i*137+index*47)%512,1+(i%3),1);
+  ctx.strokeStyle="#75664e"; ctx.lineWidth=3; ctx.strokeRect(18,18,476,476);
+  ctx.fillStyle="#392d23"; ctx.font="bold 25px monospace"; ctx.fillText(entry.title,34,60);
+  ctx.strokeStyle="rgba(57,45,35,.48)"; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(34,76); ctx.lineTo(478,76); ctx.stroke();
+  ctx.fillStyle="#403a32"; ctx.font="23px Georgia,serif";
+  const words=entry.text.split(/\s+/); let line="", y=119;
+  for(const word of words){
+    const candidate=line?line+" "+word:word;
+    if(ctx.measureText(candidate).width>438 && line){ ctx.fillText(line,34,y); y+=38; line=word; }
+    else line=candidate;
+  }
+  if(line) ctx.fillText(line,34,y);
+  ctx.fillStyle="rgba(70,30,20,.45)"; ctx.font="italic 18px Georgia,serif";
+  ctx.fillText("— recovered, east wing",34,458);
+  const texture=new CanvasTexture(paper); texture.colorSpace=SRGBColorSpace;
+  texture.anisotropy=Math.min(2,renderer.capabilities.getMaxAnisotropy());
+  return texture;
+}
+const usedEvidenceCells=new Set();
+function mountEvidenceNote(entry,index){
+  for(let tries=0;tries<160;tries++){
+    const cell=floorCells[(Math.random()*floorCells.length)|0];
+    const [c,r]=w2g(cell.x,cell.z), cellId=r*COLS+c;
+    if(usedEvidenceCells.has(cellId) || Math.hypot(cell.x-spawn[0],cell.z-spawn[1])<8 ||
+       Math.hypot(cell.x-exitPos.x,cell.z-exitPos.z)<8) continue;
+    const directions=[[1,0,0],[-1,0,Math.PI],[0,1,Math.PI/2],[0,-1,-Math.PI/2]];
+    for(const [dc,dr,rotY] of directions){
+      const nc=c+dc,nr=r+dr;
+      if(nr<0||nr>=ROWS||nc<0||nc>=COLS||grid[nr][nc]!==1) continue;
+      const [x,z]=g2w(c,r), off=CELL/2-0.075;
+      const texture=makeEvidenceTexture(entry,index);
+      const material=new MeshStandardMaterial({map:texture,roughness:0.98,metalness:0,side:DoubleSide});
+      const mesh=new Mesh(new PlaneGeometry(0.72,0.9),material);
+      mesh.position.set(x+dc*off,1.42,z+dr*off); mesh.rotation.y=rotY;
+      mesh.userData.evidenceNote=true; mesh.castShadow=false; mesh.receiveShadow=true;
+      const note={id:`log-${index+1}`,title:entry.title,text:entry.text,x,z,mesh,readCount:0};
+      mesh.userData.note=note; scene.add(mesh); evidenceNotes.push(note); usedEvidenceCells.add(cellId);
+      return note;
+    }
+  }
+  return null;
+}
+for(let i=0;i<Math.min(EVIDENCE_LOGS.length,GFX.noteCount);i++) mountEvidenceNote(EVIDENCE_LOGS[i],i);
+
+// Small ritual traces mark several junctions without adding shadow-casting lights or costly effects.
+function addRitualTrace(x,z){
+  const ring=new Mesh(new TorusGeometry(0.62,0.025,4,28),
+    new MeshBasicMaterial({color:0x3b0809,transparent:true,opacity:0.58,depthWrite:false}));
+  ring.rotation.x=-Math.PI/2; ring.position.set(x,0.028,z); scene.add(ring);
+  for(let i=0;i<3;i++){
+    const a=i*Math.PI*2/3;
+    const candle=new Mesh(new CylinderGeometry(0.045,0.055,0.18,6),
+      new MeshStandardMaterial({color:0x6a5a43,roughness:0.95}));
+    candle.position.set(x+Math.cos(a)*0.47,0.09,z+Math.sin(a)*0.47); scene.add(candle);
+  }
+}
+for(let i=0;i<Math.min(3,junctionCells.length);i++){
+  const cell=junctionCells[(i*7+3)%junctionCells.length];
+  if(Math.hypot(cell.x-spawn[0],cell.z-spawn[1])>8) addRitualTrace(cell.x,cell.z);
+}
+
+// Memory sites are return points in larger clearings. Visiting them twice rewrites a small piece of the scene.
+const memorySites=[];
+const memoryCandidates=junctionCells.filter(cell=>Math.hypot(cell.x-spawn[0],cell.z-spawn[1])>8 &&
+  Math.hypot(cell.x-exitPos.x,cell.z-exitPos.z)>8);
+for(let i=0;i<Math.min(6,memoryCandidates.length);i++){
+  const cell=memoryCandidates[(i*5+2)%memoryCandidates.length];
+  if(memorySites.some(site=>Math.hypot(site.x-cell.x,site.z-cell.z)<12)) continue;
+  let prop=null,propDist=Infinity;
+  for(const candidate of props){
+    const d=Math.hypot(candidate.position.x-cell.x,candidate.position.z-cell.z);
+    if(d<propDist){prop=candidate;propDist=d;}
+  }
+  let painting=null,paintingDist=Infinity;
+  for(const candidate of paintings){
+    const d=Math.hypot(candidate.mesh.position.x-cell.x,candidate.mesh.position.z-cell.z);
+    if(d<paintingDist){painting=candidate;paintingDist=d;}
+  }
+  memorySites.push({x:cell.x,z:cell.z,prop:propDist<9?prop:null,painting:paintingDist<10?painting:null,
+    lastVisited:0,visits:0,shifted:false,originalProp:prop?{x:prop.position.x,y:prop.position.y,z:prop.position.z,
+      rx:prop.rotation.x,ry:prop.rotation.y,rz:prop.rotation.z}:null,originalTexture:painting?painting.material.map:null});
+}
 
 /* =========== Bear-trap floor traps =========== */
 const traps=[];   // {x,z,mesh,armed}
@@ -55190,6 +55336,113 @@ ghostSprite.position.y = GH_H/2;
 ghostSprite.center.set(0.5, 0.5);
 monster.add(ghostSprite);
 
+// A separate apparition is used for low-sanity sightings; it has no collision, AI, or attack state.
+const hallucinationMat=new SpriteMaterial({map:ghostTex,color:0x181920,transparent:true,opacity:0,
+  depthWrite:false,fog:true});
+const hallucinationSprite=new Sprite(hallucinationMat);
+hallucinationSprite.scale.set(GH_W*0.86,GH_H*0.9,1);
+hallucinationSprite.center.set(0.5,0.5); hallucinationSprite.visible=false; scene.add(hallucinationSprite);
+let hallucinationUntil=0, hallucinationStarted=0;
+function spawnFakeSighting(){
+  let best=null,bestScore=-Infinity;
+  const fx=-Math.sin(yaw), fz=-Math.cos(yaw);
+  for(let i=0;i<100;i++){
+    const cell=floorCells[(Math.random()*floorCells.length)|0];
+    const dx=cell.x-playerP.x,dz=cell.z-playerP.z,dist=Math.hypot(dx,dz);
+    if(dist<5||dist>15||Math.hypot(cell.x-mon.x,cell.z-mon.z)<5) continue;
+    if(!hasLineOfSight(playerP.x,playerP.z,cell.x,cell.z)) continue;
+    const forward=(dx*fx+dz*fz)/dist;
+    if(forward<0.15||forward>0.93) continue; // keep it just off the centre of attention
+    const score=(1-Math.abs(forward-0.63))*5-Math.abs(dist-10)*0.08+Math.random()*0.15;
+    if(score>bestScore){bestScore=score;best=cell;}
+  }
+  if(!best) return false;
+  hallucinationSprite.position.set(best.x,GH_H/2,best.z);
+  hallucinationSprite.visible=true; hallucinationStarted=performance.now(); hallucinationUntil=hallucinationStarted+1750;
+  hallucinationMat.opacity=0;
+  return true;
+}
+function updateFakeSighting(){
+  if(!hallucinationSprite.visible) return;
+  const now=performance.now();
+  if(now>=hallucinationUntil){hallucinationSprite.visible=false;hallucinationMat.opacity=0;return;}
+  const age=now-hallucinationStarted,remain=hallucinationUntil-now;
+  hallucinationMat.opacity=0.38*Math.min(1,age/220,remain/450);
+}
+function triggerPsychologicalEvent(){
+  if(S.status!=="playing") return;
+  const roll=Math.random();
+  if(roll<0.52 && spawnFakeSighting()){
+    ghostWhisper();
+    // The shape is still only a hallucination: it fades instead of pursuing the player.
+    return;
+  }
+  if(roll<0.78 && redLights.length){
+    const light=redLights[(Math.random()*redLights.length)|0];
+    light.userData.memoryFlickerUntil=performance.now()+1800;
+    ghostWhisper();
+    return;
+  }
+  ghostWhisper();
+  S.flash=Math.min(1,S.flash+0.08);
+}
+function resetMemorySites(){
+  for(const site of memorySites){
+    site.lastVisited=0; site.visits=0; site.shifted=false;
+    if(site.prop&&site.originalProp){
+      const p=site.originalProp;
+      site.prop.position.set(p.x,p.y,p.z); site.prop.rotation.set(p.rx,p.ry,p.rz);
+    }
+    if(site.painting&&site.originalTexture){
+      site.painting.material.map=site.originalTexture; site.painting.material.needsUpdate=true;
+      site.painting.mesh.rotation.z=0;
+    }
+  }
+  for(const note of evidenceNotes) note.readCount=0;
+  currentMemorySite=-1; memoryPoll=0;
+}
+let currentMemorySite=-1,memoryPoll=0;
+const MEMORY_LINES=["This room is not where you left it.","The chair remembers another direction.",
+  "You have walked this corridor before.","The photograph has changed again."];
+function triggerRoomMemoryShift(site){
+  site.shifted=!site.shifted;
+  if(site.prop&&site.originalProp){
+    const p=site.originalProp,offset=site.shifted?1:0;
+    site.prop.position.set(p.x+0.28*offset,p.y,p.z-0.22*offset);
+    site.prop.rotation.set(p.rx,p.ry+(site.shifted?Math.PI/2:0),p.rz);
+  }
+  if(site.painting){
+    site.painting.material.map=site.shifted?site.painting.alternate:site.originalTexture;
+    site.painting.material.needsUpdate=true;
+    site.painting.mesh.rotation.z=site.shifted?0.035:0;
+  }
+  let closest=null,dist=Infinity;
+  for(const light of redLights){
+    const d=Math.hypot(light.position.x-site.x,light.position.z-site.z);
+    if(d<dist){dist=d;closest=light;}
+  }
+  if(closest) closest.userData.memoryFlickerUntil=performance.now()+2100;
+  site.visits++;
+  S.sanity=Math.max(0,S.sanity-1.5);
+  if(Math.random()<0.3) spawnFakeSighting();
+  ghostWhisper();
+  showMsg(MEMORY_LINES[(site.visits-1)%MEMORY_LINES.length],2800);
+}
+function updateMemoryEvents(dt){
+  memoryPoll-=dt; if(memoryPoll>0) return; memoryPoll=0.25;
+  let next=-1,best=3.15;
+  for(let i=0;i<memorySites.length;i++){
+    const site=memorySites[i],d=Math.hypot(playerP.x-site.x,playerP.z-site.z);
+    if(d<best){best=d;next=i;}
+  }
+  if(next===currentMemorySite) return;
+  currentMemorySite=next;
+  if(next<0) return;
+  const site=memorySites[next],now=performance.now();
+  if(site.lastVisited && now-site.lastVisited>10000) triggerRoomMemoryShift(site);
+  site.lastVisited=now;
+}
+
 // a faint ground shadow blob beneath her so she's grounded, not floating flat
 const ghostShadow = new Mesh(
   new CircleGeometry(0.7, 24),
@@ -55229,18 +55482,28 @@ const keyState={}; let yaw=0, pitch=0; let fDown=false, interactDown=false;
 let interactCooldown = 0; // prevents rapid re-triggering
 addEventListener("keydown",e=>{
   keyState[e.code]=true;
+  if(e.code==="Escape"){
+    if(S.readingNote){closeEvidence();e.preventDefault();return;}
+    if(S.status==="playing"){pauseGame();e.preventDefault();return;}
+    if(S.status==="paused"){resumeGame();e.preventDefault();return;}
+  }
   if(e.code==="KeyF"&&!fDown){ fDown=true; toggleFlash(); }
-  // E = universal interact (pickup items, hide in closets, open doors)
+  if(e.code==="KeyG"&&!e.repeat) dropKey();
+  // E is context-sensitive: retrieve, read, hide, leave, or open.
   if(e.code==="KeyE" && !interactDown && performance.now() > interactCooldown){
-    interactDown = true;
-    interactCooldown = performance.now() + 250; // 250ms debounce
-    doInteract();
+    interactDown=true; interactCooldown=performance.now()+220; doInteract();
   }
 });
-addEventListener("keyup",e=>{ 
-  keyState[e.code]=false; 
-  if(e.code==="KeyF") fDown=false; 
-  if(e.code==="KeyE") interactDown=false; 
+addEventListener("keyup",e=>{
+  keyState[e.code]=false;
+  if(e.code==="KeyF") fDown=false;
+  if(e.code==="KeyE") interactDown=false;
+});
+addEventListener("blur",()=>{
+  for(const code in keyState) keyState[code]=false;
+  fDown=false;interactDown=false;
+  touch.mx=0;touch.mz=0;touch.run=false;touch.active=false;
+  const runBtn=document.getElementById("btnRun");if(runBtn) runBtn.classList.remove("active");
 });
 
 canvas.addEventListener("click",()=>{ if(S.status==="playing") canvas.requestPointerLock(); });
@@ -55252,123 +55515,236 @@ document.addEventListener("mousemove",e=>{
 });
 
 function toggleFlash(){
+  if(S.status!=="playing") return;
+  if(S.hiding){S.flashOn=false;showMsg("The closet smothers the beam.",1200);return;}
   if(S.battery<=0){ S.flashOn=false; return; }
   S.flashOn=!S.flashOn;
 }
-
-/* ---------------- Universal Interact Action (E key / Mobile PICK button) ---------------- */
-// Handles: pickup items, enter/exit closets, unlock exit door
-function doInteract(){
-  if(S.status !== "playing") return;
-  
-  // 1. If hiding, EXIT the closet first (priority)
-  if(S.hiding){
-    exitCloset();
-    return;
-  }
-  
-  // 2. Check if near a closet -> HIDE
-  const closet = findNearCloset();
-  if(closet){
-    enterCloset(closet);
-    return;
-  }
-  
-  // 3. Check if near an item -> PICK UP
-  const item = findNearItem();
-  if(item){
-    pickupItem(item);
-    return;
-  }
-  
-  // 4. Check if near exit door -> try to open
-  const exitDist = Math.hypot(exitPos.x - playerP.x, exitPos.z - playerP.z);
-  if(exitDist < 2.5){
-    if(S.doorUnlocked){
-      win();
-    } else {
-      showMsg(`Locked! Need ${TOTAL_KEYS - S.keys} more key${TOTAL_KEYS - S.keys > 1 ? 's' : ''}`, 2000);
-      triggerDialogue("ambient", 3000);
-    }
-    return;
-  }
-  
-  // Nothing to interact with
-  showMsg("...", 600);
+function pauseGame(){
+  if(S.status!=="playing") return;
+  S.status="paused";
+  document.getElementById("pauseScreen").classList.add("show");
+  if(document.exitPointerLock) document.exitPointerLock();
+  for(const code in keyState) keyState[code]=false;
+  fDown=false;interactDown=false;
+  touch.mx=0;touch.mz=0;touch.run=false;
+  const runBtn=document.getElementById("btnRun"); if(runBtn) runBtn.classList.remove("active");
+  if(master&&actx) master.gain.setTargetAtTime(SETTINGS.volume/100*0.18,actx.currentTime,0.12);
+  updateRotatePrompt();
+}
+function resumeGame(){
+  if(S.status!=="paused") return;
+  S.status="playing";
+  document.getElementById("pauseScreen").classList.remove("show");
+  if(actx&&actx.state==="suspended") actx.resume();
+  if(master&&actx) master.gain.setTargetAtTime(SETTINGS.volume/100*0.9,actx.currentTime,0.12);
+  if(!touchOn && canvas.requestPointerLock) canvas.requestPointerLock();
+  updateRotatePrompt();
 }
 
-/* ---------------- Hiding mechanic (Pacify/Evil Nun style) ---------------- */
-let nearCloset = null; // closest closet within interaction range
-let nearItem = null;   // closest item within pickup range
-let nearExit = false;  // is player near the exit door
-function findNearCloset(){
-  let best = null, bestDist = 3.0; // interaction radius
-  for(const c of closetMeshes){
-    const d = Math.hypot(c.x - playerP.x, c.z - playerP.z);
-    if(d < bestDist){ bestDist = d; best = c; }
-  }
-  return best;
-}
-function toggleHide(){
-  // DEPRECATED: use doInteract() instead. Kept for backward compat.
-  doInteract();
-}
-
-/* Find nearest interactable item within pickup range */
+/* ---------------- Universal, raycast-assisted interactions ---------------- */
+// The crosshair is authoritative at normal reach; a short, wall-checked proximity fallback
+// keeps tiny or dropped keys recoverable when the player is standing directly over them.
+let nearCloset=null, nearItem=null, nearNote=null, nearExit=false;
+const _rayItemCandidates=[], _rayItemHits=[], _rayNoteCandidates=[], _rayNoteHits=[];
 function findNearItem(){
-  let best = null, bestDist = 2.2; // pickup radius
-  for(const it of items){
-    if(it.collected) continue;
-    const d = Math.hypot(it.x - playerP.x, it.z - playerP.z);
-    if(d < bestDist){ bestDist = d; best = it; }
+  let best=null,bestDist=3.5;
+  _rayItemCandidates.length=0; _rayItemHits.length=0;
+  for(const item of items){
+    if(item.collected || !item.group.visible) continue;
+    const d=Math.hypot(item.x-playerP.x,item.z-playerP.z);
+    if(d>3.5 || !hasLineOfSight(playerP.x,playerP.z,item.x,item.z)) continue;
+    if(d<bestDist){best=item;bestDist=d;}
+    _rayItemCandidates.push(item.group);
+  }
+  if(_rayItemCandidates.length){
+    camera.updateMatrixWorld(true);
+    for(const group of _rayItemCandidates) group.updateMatrixWorld(true);
+    interactionRaycaster.setFromCamera(interactionCrosshair,camera);
+    const hits=interactionRaycaster.intersectObjects(_rayItemCandidates,true,_rayItemHits);
+    for(const hit of hits){
+      if(hit.distance>interactionRaycaster.far) break;
+      for(let node=hit.object;node;node=node.parent){
+        const item=node.userData&&node.userData.interactionItem;
+        if(item&&!item.collected&&Math.hypot(item.x-playerP.x,item.z-playerP.z)<=3.5) return item;
+      }
+    }
+  }
+  // Close-range recovery assist: no aiming precision required, but walls still block pickup.
+  let close=null,closeDist=1.28;
+  for(const item of items){
+    if(item.collected || !item.group.visible) continue;
+    const d=Math.hypot(item.x-playerP.x,item.z-playerP.z);
+    if(d<closeDist && hasLineOfSight(playerP.x,playerP.z,item.x,item.z)){close=item;closeDist=d;}
+  }
+  return close;
+}
+function findNearNote(){
+  _rayNoteCandidates.length=0; _rayNoteHits.length=0;
+  for(const note of evidenceNotes){
+    if(Math.hypot(note.x-playerP.x,note.z-playerP.z)>4.0 ||
+       !hasLineOfSight(playerP.x,playerP.z,note.x,note.z)) continue;
+    _rayNoteCandidates.push(note.mesh);
+  }
+  if(_rayNoteCandidates.length){
+    camera.updateMatrixWorld(true);
+    interactionRaycaster.setFromCamera(interactionCrosshair,camera);
+    const hits=interactionRaycaster.intersectObjects(_rayNoteCandidates,false,_rayNoteHits);
+    if(hits.length && hits[0].distance<=interactionRaycaster.far) return hits[0].object.userData.note||null;
+  }
+  let best=null,bestDist=1.15;
+  for(const note of evidenceNotes){
+    const d=Math.hypot(note.x-playerP.x,note.z-playerP.z);
+    if(d<bestDist && hasLineOfSight(playerP.x,playerP.z,note.x,note.z)){best=note;bestDist=d;}
   }
   return best;
 }
-
-/* Pick up an item (called when pressing E near one) */
-function pickupItem(item){
-  if(item.collected) return;
-  item.collected = true;
-  item.group.visible = false;
-  item.light.intensity = 0;
-  if(item.type === "key"){
-    S.keys++;
-    S.doorUnlocked = S.keys >= TOTAL_KEYS;
-    if(S.doorUnlocked) {
-      if(DIFF.label === "NIGHTMARE") {
-        S.locationRevealed = true;
-        showMsg("SHE KNOWS EXACTLY WHERE YOU ARE...", 5000);
-        jumpscare();
-        triggerDialogue("spotted", 0);
-      } else {
-        showMsg("All keys found! Get to the EXIT! [E] to open", 4000);
-      }
-    } else showMsg(`🗝 Key picked up! (${S.keys}/${TOTAL_KEYS})`);
-    if(Math.random() < 0.5) triggerDialogue("keyFound", 12000);
-  } else if(item.type === "battery"){
-    S.battery = Math.min(100, S.battery + DIFF.batteryGain);
-    S.batteries++;
-    showMsg("🔋 Battery picked up! (+" + DIFF.batteryGain + "%)");
+function findNearCloset(){
+  let best=null,bestDist=3.0;
+  for(const c of closetMeshes){
+    const d=Math.hypot(c.x-playerP.x,c.z-playerP.z);
+    if(d<bestDist && hasLineOfSight(playerP.x,playerP.z,c.x,c.z)){bestDist=d;best=c;}
   }
+  return best;
 }
+function readEvidence(note){
+  if(!note || S.status!=="playing") return;
+  S.readingNote=true; S.activeNote=note; note.readCount++;
+  const body=note.readCount>1
+    ? note.text+"\n\nThe final sentence is different now. You remember writing it."
+    : note.text+(S.sanity<35?"\n\nSomeone has added, in your handwriting: I HAVE BEEN HERE BEFORE.":"");
+  document.getElementById("noteTitle").textContent=note.title;
+  document.getElementById("noteBody").textContent=body;
+  document.getElementById("notePanel").classList.add("show");
+  if(note.readCount===1) triggerDialogue("ambient",9000);
+}
+function closeEvidence(){
+  S.readingNote=false; S.activeNote=null;
+  document.getElementById("notePanel").classList.remove("show");
+}
+function doInteract(){
+  if(S.status!=="playing") return;
+  if(S.readingNote){closeEvidence();return;}
+  if(S.hiding){exitCloset();return;}
+  const item=findNearItem();
+  if(item){pickupItem(item);return;}
+  const note=findNearNote();
+  if(note){readEvidence(note);return;}
+  const closet=findNearCloset();
+  if(closet){enterCloset(closet);return;}
+  const exitDist=Math.hypot(exitPos.x-playerP.x,exitPos.z-playerP.z);
+  if(exitDist<2.5 && hasLineOfSight(playerP.x,playerP.z,exitPos.x,exitPos.z)){
+    if(S.doorUnlocked) win();
+    else {showMsg(`Locked! Need ${TOTAL_KEYS-S.keys} more key${TOTAL_KEYS-S.keys===1?"":"s"}`,2000);triggerDialogue("ambient",3000);}
+    return;
+  }
+  showMsg("Nothing answers.",700);
+}
+function dropKey(){
+  if(S.status!=="playing" || S.hiding || S.readingNote) return;
+  if(!S.inventory.keys.length){showMsg("You are carrying no key.",1200);return;}
+  const keyId=S.inventory.keys[S.inventory.keys.length-1];
+  const item=items.find(it=>it.type==="key"&&it.keyId===keyId);
+  if(!item){
+    S.inventory.keys.pop(); syncInventory();
+    showMsg("The inventory corrects itself. A key is missing.",1800);return;
+  }
+  _fwd.set(-Math.sin(yaw),0,-Math.cos(yaw));
+  let x=playerP.x+_fwd.x*0.85,z=playerP.z+_fwd.z*0.85;
+  if(collides(x,z,0.18)){x=playerP.x;z=playerP.z;}
+  if(collides(x,z,0.18)){showMsg("There is no room to set the key down.",1600);return;}
+  S.inventory.keys.pop();
+  item.collected=false; item.dropped=true; item.group.visible=true;
+  item.group.position.set(x,0,z); item.x=x; item.z=z;
+  item.spin.position.y=0.82; item.spin.rotation.z=Math.PI/2;
+  item.velocityX=_fwd.x*1.15; item.velocityZ=_fwd.z*1.15; item.velocityY=1.25;
+  item.light.position.y=0.28; item.light.intensity=0.65;
+  item.hitTarget.position.y=0.25;
+  syncInventory();
+  showMsg("Key dropped — it will stay on the floor. [E] to retrieve",2600);
+}
+function pickupItem(item){
+  if(!item || item.collected || !item.group.visible) return false;
+  if(item.type==="key"){
+    if(!item.keyId || S.inventory.keys.includes(item.keyId)) return false;
+    S.inventory.keys.push(item.keyId);
+    syncInventory();
+  }
+  item.collected=true; item.dropped=false; item.group.visible=false;
+  item.light.intensity=0;
+  if(item.type==="key"){
+    if(S.doorUnlocked){
+      if(DIFF.label==="NIGHTMARE"){
+        S.locationRevealed=true;
+        showMsg("SHE KNOWS EXACTLY WHERE YOU ARE...",5000);
+        ghostWhisper(); triggerDialogue("spotted",0);
+      } else showMsg("All keys found! Get to the EXIT! [E] to open",4000);
+    } else showMsg(`Key recovered. (${S.keys}/${TOTAL_KEYS})`);
+    if(Math.random()<0.35) triggerDialogue("keyFound",12000);
+  } else if(item.type==="battery"){
+    S.battery=Math.min(100,S.battery+DIFF.batteryGain);
+    S.inventory.batteries++; syncInventory();
+    showMsg("Battery recovered. Flashlight charge +"+DIFF.batteryGain+"%",2200);
+  }
+  return true;
+}
+let keyRecoveryClock=0;
+function nearestRecoveryCell(px,pz){
+  let best=null,bestScore=Infinity;
+  for(const cell of floorCells){
+    const d=Math.hypot(cell.x-playerP.x,cell.z-playerP.z);
+    if(d<3.5 || d>18 || collides(cell.x,cell.z,0.18)) continue;
+    const score=Math.hypot(cell.x-px,cell.z-pz)+d*0.08;
+    if(score<bestScore){bestScore=score;best=cell;}
+  }
+  return best || getSafeFloorCell(3);
+}
+function recoverCriticalKeys(dt){
+  keyRecoveryClock+=dt; if(keyRecoveryClock<1) return; keyRecoveryClock=0;
+  for(const item of items){
+    if(item.type!=="key") continue;
+    const owned=S.inventory.keys.includes(item.keyId);
+    if(owned && !item.collected){item.collected=true;item.dropped=false;item.group.visible=false;item.light.intensity=0;continue;}
+    if(owned) continue;
+    if(item.collected || !item.group.visible){
+      item.collected=false;item.dropped=true;item.group.visible=true;
+      item.group.position.set(item.x,item.group.position.y||0,item.z);
+      item.spin.position.y=item.restHeight;item.hitTarget.position.y=0.25;
+      item.light.position.y=0.28;item.light.intensity=0.48;
+      S.keyRecoveryCount++;
+      showMsg("A missing key returns to the floor.",2200);
+    }
+    const [c,r]=w2g(item.x,item.z);
+    const valid=Number.isFinite(item.x)&&Number.isFinite(item.z)&&r>=0&&r<ROWS&&c>=0&&c<COLS&&
+      grid[r][c]===0&&Number.isFinite(item.spin.position.y)&&item.spin.position.y>-0.25;
+    if(valid) continue;
+    const safe=nearestRecoveryCell(item.x,item.z);
+    item.x=safe.x;item.z=safe.z;item.group.position.set(safe.x,0,safe.z);
+    item.spin.position.y=item.dropped?item.restHeight:0.95;
+    item.velocityX=0;item.velocityY=0;item.velocityZ=0;
+    item.group.visible=true;item.collected=false;item.dropped=true;
+    item.hitTarget.position.y=0.25; item.light.position.y=0.28; item.light.intensity=0.5;
+    S.keyRecoveryCount++;
+    showMsg("A lost key scrapes back onto reachable ground.",2600);
+    ghostWhisper();
+  }
+  syncInventory();
+}
+
+/* ---------------- Hiding mechanic ---------------- */
+function toggleHide(){ doInteract(); }
 function enterCloset(closet){
   const distToGhost = Math.hypot(mon.x - playerP.x, mon.z - playerP.z);
   const ghostSees = distToGhost < DIFF.sightRange && hasLineOfSight(mon.x, mon.z, playerP.x, playerP.z);
   if (ghostSees) {
-    S.hiding = true;
-    S.hidingCloset = closet;
-    playerP.x = closet.x;
-    playerP.z = closet.z;
-    velX = 0; velZ = 0;
-    
-    // Teleport ghost to face the closet immediately
-    mon.x = playerP.x; mon.z = playerP.z;
-    
+    S.hiding=true; S.hidingCloset=closet; S.hideT=performance.now();
+    playerP.x=closet.x; playerP.z=closet.z; velX=0; velZ=0;
+    S.flashOn=false;
+    mon.state="SEARCH"; mon.lastKnown=[closet.x,closet.z]; mon.lostT=4.5;
+    mon.searchQueue=buildSearchSweep(closet.x,closet.z);
     document.getElementById("hidingOverlay").classList.add("on");
-    showMsg("SHE SAW YOU GO IN...", 3000);
-    S.flash = 1.0;
-    jumpscare();
-    setTimeout(die, 1500);
+    showMsg("She watched you enter. Stay still.",3000);
+    ghostWhisper();
     return;
   }
   S.hiding = true;
@@ -55489,8 +55865,11 @@ const btnRun=document.getElementById("btnRun");
 const tapBtn=(el,fn)=> el.addEventListener("pointerdown",e=>{ fn(); e.preventDefault(); });
 tapBtn(btnRun, ()=>{ touch.run=!touch.run; btnRun.classList.toggle("active",touch.run); });
 tapBtn(document.getElementById("btnInteract"), ()=> doInteract());
+tapBtn(document.getElementById("btnDrop"), ()=> dropKey());
+tapBtn(document.getElementById("btnPause"), ()=> S.status==="paused"?resumeGame():pauseGame());
 tapBtn(document.getElementById("btnFlash"), ()=> toggleFlash());
 tapBtn(document.getElementById("btnMap"), ()=> toggleMap());
+document.getElementById("resumeBtn").addEventListener("click",resumeGame);
 
 /* ---------------- Messages ---------------- */
 const msgEl=document.getElementById("message"); let msgUntil=0;
@@ -55525,20 +55904,16 @@ function updatePlayer(dt){
     camera.rotation.order="YXZ";
     camera.rotation.set(pitch, yaw, 0);
     // Update near closet check for prompt
-    nearCloset = null;
-    nearItem = null;
-    nearExit = false;
+    nearCloset=null; nearItem=null; nearNote=null; nearExit=false;
     return;
   }
-  
-  // Check if near a closet (for prompt)
-  nearCloset = findNearCloset();
-  
-  // Check if near an item (for prompt)
-  nearItem = findNearItem();
-  
-  // Check if near exit (for prompt)
-  nearExit = Math.hypot(exitPos.x - playerP.x, exitPos.z - playerP.z) < 2.5;
+  if(S.readingNote){
+    velX=0;velZ=0;
+    camera.position.set(playerP.x,EYE,playerP.z);
+    camera.rotation.order="YXZ"; camera.rotation.set(pitch,yaw,0);
+    nearCloset=null;nearItem=null;nearNote=null;nearExit=false;
+    return;
+  }
   
   // direction from yaw (reuse scratch vectors, don't allocate)
   _fwd.set(-Math.sin(yaw),0,-Math.cos(yaw));
@@ -55600,6 +55975,12 @@ function updatePlayer(dt){
   camera.rotation.order="YXZ";
   camera.rotation.set(pitch+shy, yaw+shx, fear*0.02*(Math.random()-0.5));
 
+  nearItem=findNearItem();
+  nearNote=nearItem?null:findNearNote();
+  nearCloset=(!nearItem&&!nearNote)?findNearCloset():null;
+  nearExit=!nearItem&&!nearNote&&!nearCloset&&Math.hypot(exitPos.x-playerP.x,exitPos.z-playerP.z)<2.5&&
+    hasLineOfSight(playerP.x,playerP.z,exitPos.x,exitPos.z);
+
   // footsteps
   stepAccum += Math.hypot(nx-lastX,nz-lastZ); lastX=nx; lastZ=nz;
   if(stepAccum>2.2){ stepAccum=0; footstep(); }
@@ -55640,24 +56021,17 @@ function scheduleAmbientScare(){
   nextAmbientScare = performance.now() + DIFF.scareEvery[0] + Math.random()*DIFF.scareEvery[1];
 }
 function updateAmbientScares(){
-  if(performance.now()>nextAmbientScare){
-    scheduleAmbientScare();
-    // Rare corpse-summon scare (10% — was 34%); mostly ambient sound + ghost whisper
-    // The cheap "face right in front of you" scare is overused and breaks immersion.
-    // Most ambient scares are now audio-only with a subtle visual flash.
-    if(Math.random()<0.10){
-      summonScare();
-      triggerDialogue("jumpscare", 5000);
-    } else if(Math.random()<0.30) {
-      // Ghost whisper + subtle red flash (no image)
-      ghostWhisper();
-      S.flash = Math.min(1, S.flash + 0.25);
-      triggerDialogue("ambient", 5000);
-    } else {
-      S.flash = Math.min(1, S.flash + 0.40);
-      ambientScare();
-      triggerDialogue("ambient", 5000);
-    }
+  if(performance.now()<=nextAmbientScare) return;
+  scheduleAmbientScare();
+  const roll=Math.random();
+  if(roll<0.035 && S.sanity<45){
+    triggerPsychologicalEvent();
+  } else if(roll<0.43){
+    ghostWhisper(); triggerDialogue("ambient",8000);
+  } else if(roll<0.76){
+    ambientScare(); triggerDialogue("ambient",8000);
+  } else {
+    triggerPsychologicalEvent();
   }
 }
 
@@ -55672,70 +56046,50 @@ function isPlayerLookingAt(){
 }
 
 function updateMonster(dt,time){
-  // HALLUCINATION SYSTEM - Pure psychological horror
-  if (!mon.hallucinationTimer) mon.hallucinationTimer = 0;
-  mon.hallucinationTimer -= dt;
-  
-  if (mon.hallucinationTimer <= 0 && S.sanity < 70 && Math.random() < 0.02) {
-    // Trigger hallucination - fake ghost appearance
-    mon.hallucinationTimer = 15 + Math.random() * 20; // Every 15-35 seconds when sanity is low
-    
-    const hallucType = Math.random();
-    if (hallucType < 0.3) {
-      // Shadow figure in peripheral vision
-      S.flash = Math.min(1, S.flash + 0.3);
-      ghostWhisper();
-      setTimeout(() => {
-        S.flash = Math.min(1, S.flash + 0.2);
-      }, 200);
-    } else if (hallucType < 0.6) {
-      // Flickering lights and distant scream
-      redLights.forEach(l => {
-        const orig = l.intensity;
-        l.intensity = 0;
-        setTimeout(() => l.intensity = orig * 3, 50);
-        setTimeout(() => l.intensity = orig, 150);
-      });
-      ambientScare();
-    } else {
-      // Heavy breathing and heartbeat intensifies
-      heartIntensity = Math.min(1, heartIntensity + 0.5);
-      setTimeout(() => {
-        heartIntensity = Math.max(0, heartIntensity - 0.3);
-      }, 3000);
-    }
+  mon.hallucinationTimer=(mon.hallucinationTimer||0)-dt;
+  if(S.sanity<68 && mon.hallucinationTimer<=0){
+    triggerPsychologicalEvent();
+    mon.hallucinationTimer=24+Math.random()*22;
+  } else if(S.sanity>=68 && mon.hallucinationTimer<5){
+    mon.hallucinationTimer=5;
   }
-  
   const dx=playerP.x-mon.x, dz=playerP.z-mon.z, dist=Math.hypot(dx,dz);
   S.monDist=dist;
 
   const running = keyState.ShiftLeft || keyState.ShiftRight || touch.run;
-  const soundRange = running ? DIFF.detect * 1.5 : DIFF.detect * 0.5;
-  // HIDING: ghost can't see you when you're in a closet, and can barely hear you
-  const hidePenalty = (S.hiding && !S.locationRevealed) ? 0.15 : 1.0;
-  const canSee = (!S.hiding || S.locationRevealed) && dist < DIFF.sightRange && hasLineOfSight(mon.x,mon.z,playerP.x,playerP.z);
-  const canHear = dist < (soundRange * hidePenalty);
+  const movingNow=Math.hypot(velX,velZ)>0.5;
+  const soundRange = running ? DIFF.detect * 1.5 : movingNow ? DIFF.detect * 0.5 : DIFF.detect * 0.14;
+  // HIDING is quiet, but repeated hiding and route habits teach the ghost what to check.
+  const hidePenalty=(S.hiding&&!S.locationRevealed)?Math.min(0.55,0.15+GhostDirector.hideHabit*0.4):1.0;
+  const learnedHearing=1+GhostDirector.runHabit*0.16+GhostDirector.repeatRoute*0.12;
+  const stillnessPenalty=1-GhostDirector.stillHabit*0.08;
+  const canSee=(!S.hiding||S.locationRevealed)&&dist<DIFF.sightRange&&hasLineOfSight(mon.x,mon.z,playerP.x,playerP.z);
+  const canHear=dist<(soundRange*hidePenalty*learnedHearing*stillnessPenalty);
+  GhostDirector.observe(dt,running,movingNow,S.hiding);
+  let speed=DIFF.wander,goal=[mon.x,mon.z];
 
   // AI State machine
   if (!mon.state) mon.state = "WANDER";
   if (!mon.lastKnown) mon.lastKnown = [mon.x, mon.z];
 
-  if (S.locationRevealed) {
-    mon.state = "HUNT";
-    mon.lastKnown = [playerP.x, playerP.z];
-    mon.lastVX = velX; mon.lastVZ = velZ;
-    mon.lostT = 999;
-    mon.searchQueue = [];
-  } else if (canSee) {
-    mon.state = "HUNT";
-    mon.lastKnown = [playerP.x, playerP.z];
-    mon.lastVX = velX; mon.lastVZ = velZ;
-    mon.lostT = 5.5;
-    mon.searchQueue = [];
-  } else if (canHear && mon.state !== "HUNT") {
-    mon.state = "SEARCH";
-    mon.lastKnown = [playerP.x, playerP.z];
-    mon.lostT = 3.0;
+  if(S.locationRevealed){
+    mon.state="HUNT";mon.lastKnown=[playerP.x,playerP.z];
+    mon.lastVX=velX;mon.lastVZ=velZ;mon.lostT=999;mon.searchQueue=[];
+  } else if(mon.state==="STALK"){
+    if(dist<10 || (running&&dist<18)){
+      mon.state="HUNT";mon.lastKnown=[playerP.x,playerP.z];
+      mon.lastVX=velX;mon.lastVZ=velZ;mon.lostT=5.5;mon.searchQueue=[];
+    }
+  } else if(canSee){
+    if(mon.state==="WANDER" && dist>18 && GhostDirector.runHabit<0.72){
+      mon.state="STALK";mon.stalkT=2.5+Math.random()*2.5;
+      mon.lastKnown=[playerP.x,playerP.z];mon.lostT=5.5;
+    } else {
+      mon.state="HUNT";mon.lastKnown=[playerP.x,playerP.z];
+      mon.lastVX=velX;mon.lastVZ=velZ;mon.lostT=5.5;mon.searchQueue=[];
+    }
+  } else if(canHear && mon.state!=="HUNT" && mon.state!=="STALK"){
+    mon.state="SEARCH";mon.lastKnown=[playerP.x,playerP.z];mon.lostT=3.0;
   }
 
   if (mon.state === "HUNT" || mon.state === "SEARCH") {
@@ -55755,197 +56109,56 @@ function updateMonster(dt,time){
     }
   }
 
-  // AI INTELLIGENCE: Use Pythia 50M for intelligent decision-making
-  if (DIFF.useAI && AIGhost.loaded && !mon.frozen) {
-    const now = performance.now();
-    if (now - mon.aiLastDecision > mon.aiDecisionInterval) {
-      mon.aiLastDecision = now;
-      
-      const context = {
-        playerDist: dist,
-        playerMoving: Math.hypot(velX, velZ) > 0.5,
-        playerHiding: S.hiding,
-        lastSeen: canSee || (mon.state === "HUNT" && mon.lostT > 0),
-        ghostState: mon.state,
-      };
-      
-      // Make AI decision asynchronously
-      AIGhost.decide(context).then(decision => {
-        if (decision === 'CHASE' && mon.state !== "HUNT") {
-          mon.state = "HUNT";
-          mon.lastKnown = [playerP.x, playerP.z];
-          mon.lostT = 7.0; // Longer memory in AI mode
-        } else if (decision === 'STALK' && mon.state === "WANDER") {
-          mon.state = "STALK";
-          mon.stalkT = 5 + Math.random() * 4;
-        } else if (decision === 'FEINT' && mon.state === "HUNT" && !mon.feinting) {
-          mon.feinting = true;
-          mon.feintT = 1.5 + Math.random() * 2.0;
-        } else if (decision === 'SEARCH' && mon.state === "WANDER") {
-          mon.state = "SEARCH";
-          mon.lastKnown = [playerP.x, playerP.z];
-          mon.lostT = 5.0;
-          mon.searchQueue = buildSearchSweep(mon.lastKnown[0], mon.lastKnown[1]);
-        } else if (decision === 'AMBUSH' && dist > 20) {
-          // AI-specific: teleport ahead of player
-          const aheadX = playerP.x + velX * 3;
-          const aheadZ = playerP.z + velZ * 3;
-          if (!collides(aheadX, aheadZ, 0.6)) {
-            mon.x = aheadX;
-            mon.z = aheadZ;
-            mon.state = "STALK";
-            mon.stalkT = 2;
-          }
-        }
-      });
-      
-      // Record player behavior for prediction
-      if (Math.hypot(velX, velZ) > 0.5) {
-        AIGhost.recordPlayerAction('moving');
-      } else if (S.hiding) {
-        AIGhost.recordPlayerAction('hiding');
-      } else {
-        AIGhost.recordPlayerAction('still');
-      }
-      
-      // AI learns player patterns and becomes more aggressive
-      const prediction = AIGhost.predictPlayerBehavior();
-      if (prediction === 'hiding' && Math.random() < 0.3) {
-        // Ghost anticipates hiding and checks closets
-        mon.searchQueue = buildSearchSweep(playerP.x, playerP.z);
-        mon.state = "SEARCH";
-        mon.lostT = 4.0;
-      }
+  // Adaptive director: learn the player's habits, then stalk, intercept, or search rather than teleporting at random.
+  mon.flankingCooldown=(mon.flankingCooldown||0)-dt;
+  if(mon.state==="HUNT" && GhostDirector.runHabit>0.35 && dist>12 &&
+     mon.flankingCooldown<=0 && !mon.flankTarget){
+    const predX=playerP.x+velX*1.25,predZ=playerP.z+velZ*1.25;
+    let best=null,bestCost=Infinity;
+    for(const cell of cornerCells){
+      const playerDist=Math.hypot(cell.x-playerP.x,cell.z-playerP.z);
+      if(playerDist<6||playerDist>18) continue;
+      const cost=Math.hypot(cell.x-predX,cell.z-predZ)+Math.random()*1.5;
+      if(cost<bestCost){bestCost=cost;best=cell;}
     }
-    
-    // AI mode: ghost is more aggressive and faster
-    if (mon.state === "HUNT") {
-      speed *= 1.15; // 15% faster in AI mode
+    if(best){mon.flankTarget=[best.x,best.z];mon.flankUntil=performance.now()+2400;mon.flankingCooldown=9+Math.random()*4;}
+  }
+  if(mon.flankTarget && performance.now()>mon.flankUntil) mon.flankTarget=null;
+
+  if(mon.state==="HUNT" && canSee){
+    const leadT=0.45+GhostDirector.runHabit*0.72;
+    const predictX=playerP.x+mon.lastVX*leadT,predictZ=playerP.z+mon.lastVZ*leadT;
+    goal=(!isWall(predictX,predictZ)&&GhostDirector.runHabit>0.2)?[predictX,predictZ]:[playerP.x,playerP.z];
+    if(mon.flankTarget && performance.now()<mon.flankUntil) goal=mon.flankTarget;
+  }
+
+  if(mon.state==="SEARCH" && mon.searchQueue.length===0){
+    const targets=[];
+    for(const closet of closetSpots){
+      const d=Math.hypot(closet.x-mon.lastKnown[0],closet.z-mon.lastKnown[1]);
+      if(d<20 && GhostDirector.hideHabit>0.08) targets.push({x:closet.x,z:closet.z,priority:0});
     }
-  } else if (!DIFF.useAI && !mon.frozen) {
-    // ENHANCED SCRIPTED INTELLIGENCE - Smart behaviors without AI model
-    if (!mon.scriptedPatterns) mon.scriptedPatterns = [];
-    if (!mon.flankingCooldown) mon.flankingCooldown = 0;
-    if (!mon.predictionAccuracy) mon.predictionAccuracy = 0;
-    
-    mon.flankingCooldown -= dt;
-    
-    // Track player movement patterns for prediction
-    if (Math.hypot(velX, velZ) > 0.5) {
-      mon.scriptedPatterns.push({
-        x: playerP.x, z: playerP.z, 
-        vx: velX, vz: velZ,
-        time: performance.now()
-      });
-      if (mon.scriptedPatterns.length > 30) mon.scriptedPatterns.shift();
-      
-      // Calculate prediction accuracy based on pattern consistency
-      if (mon.scriptedPatterns.length > 10) {
-        const recent = mon.scriptedPatterns.slice(-10);
-        const avgVX = recent.reduce((s, p) => s + p.vx, 0) / recent.length;
-        const avgVZ = recent.reduce((s, p) => s + p.vz, 0) / recent.length;
-        const variance = recent.reduce((s, p) => 
-          s + Math.abs(p.vx - avgVX) + Math.abs(p.vz - avgVZ), 0) / recent.length;
-        mon.predictionAccuracy = Math.max(0, 1 - variance / 5);
-      }
+    for(const cell of deadEndCells){
+      const d=Math.hypot(cell.x-mon.lastKnown[0],cell.z-mon.lastKnown[1]);
+      if(d<15) targets.push({x:cell.x,z:cell.z,priority:1});
     }
-    
-    // FLANKING BEHAVIOR - Cut off escape routes
-    if (mon.state === "HUNT" && dist > 15 && dist < 30 && mon.flankingCooldown <= 0 && Math.random() < 0.3) {
-      // Predict where player will be in 2 seconds
-      const predX = playerP.x + velX * 2;
-      const predZ = playerP.z + velZ * 2;
-      
-      // Try to get ahead of player
-      const flankX = predX + (predX - mon.x) * 0.5;
-      const flankZ = predZ + (predZ - mon.z) * 0.5;
-      
-      if (!collides(flankX, flankZ, 0.6) && Math.hypot(flankX - playerP.x, flankZ - playerP.z) > 8) {
-        mon.x = flankX;
-        mon.z = flankZ;
-        mon.flankingCooldown = 8 + Math.random() * 5; // Cooldown 8-13 seconds
-      }
+    targets.sort((a,b)=>a.priority-b.priority ||
+      Math.hypot(a.x-mon.lastKnown[0],a.z-mon.lastKnown[1])-Math.hypot(b.x-mon.lastKnown[0],b.z-mon.lastKnown[1]));
+    mon.searchQueue=targets.slice(0,5).map(target=>[target.x,target.z]);
+  }
+
+  mon.strategicCooldown=(mon.strategicCooldown||0)-dt;
+  if(mon.state==="WANDER" && mon.strategicCooldown<=0){
+    mon.strategicCooldown=3.5+Math.random()*3.5;
+    let chosen=null,score=Infinity;
+    for(const cell of cornerCells){
+      const d=Math.hypot(cell.x-playerP.x,cell.z-playerP.z);
+      if(d<14||d>38) continue;
+      const stale=performance.now()-(mon.visited.get(cell.c+","+cell.r)||0);
+      const cost=d+(stale<5000?8:0)+Math.random()*8;
+      if(cost<score){score=cost;chosen=cell;}
     }
-    
-    // PREDICTIVE CHASING - Lead the target
-    if (mon.state === "HUNT" && canSee && mon.predictionAccuracy > 0.5) {
-      const leadTime = 0.5 + mon.predictionAccuracy * 0.5; // 0.5-1.0 seconds
-      goal = [playerP.x + velX * leadTime, playerP.z + velZ * leadTime];
-      speed *= 1.1; // 10% faster when predicting
-    }
-    
-    // COORDINATED SEARCH - Check hiding spots systematically
-    if (mon.state === "SEARCH" && mon.searchQueue.length === 0) {
-      // Prioritize checking closets and dead ends
-      const searchTargets = [];
-      
-      // Add nearby closets
-      closetSpots.forEach(closet => {
-        const d = Math.hypot(closet.x - mon.lastKnown[0], closet.z - mon.lastKnown[1]);
-        if (d < 20) searchTargets.push({x: closet.x, z: closet.z, priority: 1});
-      });
-      
-      // Add dead ends
-      for (let r = 0; r < ROWS; r++) {
-        for (let c = 0; c < COLS; c++) {
-          if (grid[r] && grid[r][c] === 0) {
-            let neighbors = 0;
-            if (grid[r-1] && grid[r-1][c] === 0) neighbors++;
-            if (grid[r+1] && grid[r+1][c] === 0) neighbors++;
-            if (grid[r][c-1] === 0) neighbors++;
-            if (grid[r][c+1] === 0) neighbors++;
-            
-            if (neighbors === 1) { // Dead end
-              const [wx, wz] = g2w(c, r);
-              const d = Math.hypot(wx - mon.lastKnown[0], wz - mon.lastKnown[1]);
-              if (d < 15) searchTargets.push({x: wx, z: wz, priority: 2});
-            }
-          }
-        }
-      }
-      
-      // Sort by priority then distance
-      searchTargets.sort((a, b) => {
-        if (a.priority !== b.priority) return a.priority - b.priority;
-        const da = Math.hypot(a.x - mon.lastKnown[0], a.z - mon.lastKnown[1]);
-        const db = Math.hypot(b.x - mon.lastKnown[0], b.z - mon.lastKnown[1]);
-        return da - db;
-      });
-      
-      mon.searchQueue = searchTargets.slice(0, 5).map(t => [t.x, t.z]);
-    }
-    
-    // STRATEGIC POSITIONING - Use corners and chokepoints
-    if (mon.state === "WANDER" && Math.random() < 0.15) {
-      // Find a strategic position (corner, chokepoint, or near items)
-      const strategicSpots = [];
-      
-      // Corners (cells with 2+ wall neighbors)
-      for (let r = 1; r < ROWS - 1; r++) {
-        for (let c = 1; c < COLS - 1; c++) {
-          if (grid[r] && grid[r][c] === 0) {
-            let wallNeighbors = 0;
-            if (grid[r-1] && grid[r-1][c] === 1) wallNeighbors++;
-            if (grid[r+1] && grid[r+1][c] === 1) wallNeighbors++;
-            if (grid[r][c-1] === 1) wallNeighbors++;
-            if (grid[r][c+1] === 1) wallNeighbors++;
-            
-            if (wallNeighbors >= 2) {
-              const [wx, wz] = g2w(c, r);
-              const d = Math.hypot(wx - playerP.x, wz - playerP.z);
-              if (d > 20 && d < 40) {
-                strategicSpots.push({x: wx, z: wz});
-              }
-            }
-          }
-        }
-      }
-      
-      if (strategicSpots.length > 0) {
-        const spot = strategicSpots[Math.floor(Math.random() * strategicSpots.length)];
-        mon.goal = [spot.x, spot.z];
-      }
-    }
+    if(chosen){mon.goal=[chosen.x,chosen.z];mon.repath=5+Math.random()*3;}
   }
 
   // SCP-style freeze
@@ -55994,24 +56207,22 @@ function updateMonster(dt,time){
   if(mon.state === "STALK") {
     mon.stalkT = (mon.stalkT||3) - dt;
     S.monStalking = true;
-    // If the player stares at her, she vanishes after a moment
-    if(S.lookingAt && mon.stalkT < 1) { mon.state = "WANDER"; S.monStalking = false; }
-    if(mon.stalkT <= 0) {
-      // After stalking, she either chases or disappears
-      if(canSee || dist < DIFF.sightRange) {
-        mon.state = "HUNT"; mon.lastKnown = [playerP.x, playerP.z]; mon.lostT = 5.5;
-      } else {
-        mon.state = "WANDER";
-      }
-      S.monStalking = false;
+    // If she has been held in the player's gaze, let the silence win: she withdraws instead of snapping to HUNT.
+    if(S.lookingAt && mon.stalkT<0.8){
+      mon.state="WANDER";mon.goal=null;mon.blinkT=8+Math.random()*4;S.monStalking=false;
+      const vanish=randomHiddenCell(playerP.x,playerP.z);
+      if(vanish){mon.x=vanish[0];mon.z=vanish[1];}
+    } else if(mon.stalkT<=0){
+      if(canSee || dist<Math.min(12,DIFF.sightRange)){
+        mon.state="HUNT";mon.lastKnown=[playerP.x,playerP.z];mon.lostT=5.5;
+      } else mon.state="WANDER";
+      S.monStalking=false;
     }
   } else {
     S.monStalking = false;
   }
 
-  // goal + speed - declared early so feinting code can use it
-  let speed = DIFF.wander, goal = [mon.x, mon.z];
-
+  // `speed` and `goal` were initialized before AI state transitions above.
   // ===== ENHANCEMENT: Ghost "feint" behavior =====
   // Occasionally during HUNT, ghost stops moving for 1-2 seconds (player thinks they escaped)
   // then suddenly sprints again - very scary and unpredictable
@@ -56024,12 +56235,10 @@ function updateMonster(dt,time){
   }
   if(mon.feinting) {
     mon.feintT -= dt;
-    speed = 0; // stand completely still
     if(mon.feintT <= 0) {
       mon.feinting = false;
-      // After feint, ghost is FASTER (angry/surprise attack)
-      speed = DIFF.sprint * 1.3;
-      ghostWhisper(); // creepy whisper when she resumes
+      mon.feintBurst=0.9;
+      ghostWhisper(); // the sudden resumption is marked by a close whisper
     }
   }
 
@@ -56039,15 +56248,14 @@ function updateMonster(dt,time){
     speed = 0;
   } else if(mon.state === "HUNT"){
     if(canSee){
-      // SMARTER predictive intercept: aim further ahead of player's movement
-      // to cut off escape routes more effectively (increased from 0.35 to 0.6)
-      const leadT = 0.6;
-      goal = [playerP.x + mon.lastVX*leadT, playerP.z + mon.lastVZ*leadT];
-    } else {
-      goal = mon.lastKnown;
-    }
-    // Base speed: sprint when can see, chase when can't
-    let baseSpeed = canSee ? DIFF.sprint : DIFF.chase;
+      const leadT=0.45+GhostDirector.runHabit*0.72;
+      const px=playerP.x+mon.lastVX*leadT,pz=playerP.z+mon.lastVZ*leadT;
+      goal=(!isWall(px,pz)&&GhostDirector.runHabit>0.2)?[px,pz]:[playerP.x,playerP.z];
+      if(mon.flankTarget && performance.now()<mon.flankUntil) goal=mon.flankTarget;
+    } else goal=mon.lastKnown;
+    // Base speed: sprint when seen; pressure is earned by observation, not a permanent speed cheat.
+    let baseSpeed=canSee?DIFF.sprint:DIFF.chase;
+    if(GhostDirector.runHabit>0.72 && canSee) baseSpeed*=1.04;
     // ===== ENHANCEMENT: Ghost FASTER in corridors (but slower in rooms) =====
     // Check if ghost is in a corridor (few open neighbors) vs room (many open)
     const [mc, mr] = w2g(mon.x, mon.z);
@@ -56080,10 +56288,25 @@ function updateMonster(dt,time){
     goal=mon.goal; speed=DIFF.wander;
   }
 
+  // Apply feints after state speed selection so the intended pause/burst survives.
+  if(mon.feinting) speed=0;
+  else if(mon.feintBurst>0){
+    speed=Math.max(speed,DIFF.sprint*1.18);
+    mon.feintBurst=Math.max(0,mon.feintBurst-dt);
+  }
+
   // (Open area slowdown already handled in HUNT state above)
 
   if(!mon.frozen){
-    const stepp=nextStep(mon.x,mon.z,goal[0],goal[1]);
+    const [fromC,fromR]=w2g(mon.x,mon.z),[goalC,goalR]=w2g(goal[0],goal[1]);
+    const fromCell=fromR*COLS+fromC,goalCell=goalR*COLS+goalC;
+    mon.pathTimer=(mon.pathTimer||0)-dt;
+    if(mon.pathTimer<=0 || fromCell!==mon.pathFromCell || goalCell!==mon.pathGoalCell){
+      mon.pathStep=nextStep(mon.x,mon.z,goal[0],goal[1]);
+      mon.pathFromCell=fromCell;mon.pathGoalCell=goalCell;
+      mon.pathTimer=mon.state==="HUNT"?0.22:0.42;
+    }
+    const stepp=mon.pathStep;
     let dirX=0, dirZ=0;
     // Only ever move toward a BFS-verified waypoint. Falling back to a straight
     // line at the raw `goal` (which can be many cells away, on the other side of
@@ -56111,7 +56334,8 @@ function updateMonster(dt,time){
     mon._visitThrottle = (mon._visitThrottle||0) - dt;
     if(mon._visitThrottle<=0){
       mon._visitThrottle = 0.5;
-      const vk = (Math.round(mon.x*2)/2).toFixed(1)+","+(Math.round(mon.z*2)/2).toFixed(1);
+      const [vc,vr]=w2g(mon.x,mon.z);
+      const vk=vc+","+vr;
       mon.visited.set(vk, performance.now());
       if(mon.visited.size > 200){ // cap memory usage
         const firstKey = mon.visited.keys().next().value;
@@ -56120,24 +56344,18 @@ function updateMonster(dt,time){
     }
   }
 
-  // Visual Glitch logic
-  if (dist < 6 && S.seen) {
-    if (Math.random() < 0.1) canvas.classList.add("glitch");
-    else canvas.classList.remove("glitch");
-  } else {
-    canvas.classList.remove("glitch");
-  }
-  // Motion blur while being actively chased at close range (toggleable realism FX)
-  const wantBlur = SETTINGS.blur && mon.state==="HUNT" && dist < 8 && !mon.frozen;
-  canvas.classList.toggle("chaseblur", wantBlur);
+  // Keep perceptual distortion intermittent and subtle; avoid full-frame blur/hue filters while chasing.
+  const wantBlur=SETTINGS.blur&&mon.state==="HUNT"&&dist<8&&!mon.frozen&&S.sanity<18;
+  canvas.classList.toggle("chaseblur",wantBlur);
+  if(dist<6&&S.seen&&S.sanity<28&&Math.random()<0.015) canvas.classList.add("glitch");
+  else if(!S.seen||dist>=6||S.sanity>=28) canvas.classList.remove("glitch");
 
   
   if (deathAnimation) {
     // Ghost lunges directly into the camera's face!
-    const dir = new Vector3();
-    camera.getWorldDirection(dir);
-    mon.x = camera.position.x + dir.x * 0.8;
-    mon.z = camera.position.z + dir.z * 0.8;
+    camera.getWorldDirection(_dir);
+    mon.x=camera.position.x+_dir.x*0.8;
+    mon.z=camera.position.z+_dir.z*0.8;
     monster.position.set(mon.x, camera.position.y - 0.5, mon.z);
     
   } else {
@@ -56184,14 +56402,9 @@ function updateMonster(dt,time){
         hiss();
         if(navigator.vibrate) navigator.vibrate([200, 100, 200]);
         showMsg("SHE'S RIGHT OUTSIDE!", 2000);
-        // On EXTREME, small chance she opens the closet
-        if(DIFF === DIFFICULTY.nightmare && Math.random() < 0.15) {
-          exitCloset();
-          mon.state = "HUNT";
-          mon.lastKnown = [playerP.x, playerP.z];
-          mon.lostT = 5;
-          flashScare(600);
-          showMsg("SHE FOUND YOU!", 2000);
+        if(DIFF===DIFFICULTY.nightmare && Math.random()<0.08){
+          mon.state="SEARCH";mon.lastKnown=[S.hidingCloset.x,S.hidingCloset.z];mon.lostT=6;
+          showMsg("The handle turns once. Then stops.",2600);
         }
       }
     }
@@ -56211,10 +56424,10 @@ function updateMonster(dt,time){
   }
 
   if(dist<5.0 && !mon.frozen && performance.now()>nextScareAt){
-    nextScareAt = performance.now() + 5000 + Math.random()*5000;
-    S.flash = 1.0;
-    flashScare(500);
-    triggerDialogue("jumpscare", 4000);
+    nextScareAt=performance.now()+12000+Math.random()*9000;
+    S.flash=Math.min(1,S.flash+0.12);
+    ghostWhisper();
+    if(Math.random()<0.35) triggerDialogue("chase",9000);
   }
 
   if(dist < 0.8 && (!S.hiding || S.locationRevealed)) {
@@ -56289,7 +56502,8 @@ function updateHUD(){
   sanStat.textContent=Math.round(S.sanity)+"%"; sanStat.style.color=sanColor;
 
   keyEls.forEach((el,i)=>el.classList.toggle("on",i<S.keys));
-  objHint.textContent = S.keys>=TOTAL_KEYS?"FIND THE EXIT":`${TOTAL_KEYS-S.keys} remaining`;
+  const droppedKeyCount=items.reduce((count,item)=>count+(item.type==="key"&&item.dropped&&!item.collected?1:0),0);
+  objHint.textContent=S.doorUnlocked?"FIND THE EXIT":`${TOTAL_KEYS-S.keys} remaining${droppedKeyCount?` · ${droppedKeyCount} dropped`:""}`;
 
   const sv=(100-S.sanity)/100;
   vignette.style.boxShadow=`inset 0 0 ${120+sv*220}px ${30+sv*120}px rgba(0,0,0,${0.55+sv*0.4})`;
@@ -56315,27 +56529,30 @@ function updateHUD(){
   const hidePrompt = document.getElementById("hidePrompt");
   const btnInteract = document.getElementById("btnInteract");
   if(hidePrompt) {
-    if(S.hiding) {
-      hidePrompt.textContent = "[E] LEAVE CLOSET";
-      hidePrompt.classList.add("on");
-      if(btnInteract) btnInteract.textContent = "EXIT";
-    } else if(nearCloset) {
-      hidePrompt.textContent = "[E] HIDE IN CLOSET";
-      hidePrompt.classList.add("on");
-      if(btnInteract) btnInteract.textContent = "HIDE";
-    } else if(nearItem) {
-      hidePrompt.textContent = nearItem.type === "key" ? "[E] PICK UP KEY" : "[E] PICK UP BATTERY";
-      hidePrompt.classList.add("on");
-      if(btnInteract) btnInteract.textContent = "PICK";
-    } else if(nearExit) {
-      hidePrompt.textContent = S.doorUnlocked ? "[E] OPEN EXIT" : "[E] LOCKED - NEED KEYS";
-      hidePrompt.classList.add("on");
-      if(btnInteract) btnInteract.textContent = S.doorUnlocked ? "OPEN" : "🔒";
+    if(S.readingNote){
+      hidePrompt.textContent="[E] CLOSE NOTE"; hidePrompt.classList.add("on");
+      if(btnInteract) btnInteract.textContent="CLOSE";
+    } else if(S.hiding){
+      hidePrompt.textContent="[E] LEAVE CLOSET"; hidePrompt.classList.add("on");
+      if(btnInteract) btnInteract.textContent="EXIT";
+    } else if(nearItem){
+      hidePrompt.textContent=nearItem.type==="key"?"[E] RETRIEVE KEY":"[E] PICK UP BATTERY";
+      hidePrompt.classList.add("on"); if(btnInteract) btnInteract.textContent="PICK";
+    } else if(nearNote){
+      hidePrompt.textContent="[E] READ "+nearNote.title;
+      hidePrompt.classList.add("on"); if(btnInteract) btnInteract.textContent="READ";
+    } else if(nearCloset){
+      hidePrompt.textContent="[E] HIDE IN CLOSET"; hidePrompt.classList.add("on");
+      if(btnInteract) btnInteract.textContent="HIDE";
+    } else if(nearExit){
+      hidePrompt.textContent=S.doorUnlocked?"[E] OPEN EXIT":"[E] LOCKED - NEED KEYS";
+      hidePrompt.classList.add("on"); if(btnInteract) btnInteract.textContent=S.doorUnlocked?"OPEN":"🔒";
     } else {
-      hidePrompt.classList.remove("on");
-      if(btnInteract) btnInteract.textContent = "✋";
+      hidePrompt.classList.remove("on"); if(btnInteract) btnInteract.textContent="✋";
     }
   }
+  const dropBtn=document.getElementById("btnDrop");
+  if(dropBtn){dropBtn.disabled=!S.inventory.keys.length||S.hiding||S.readingNote;dropBtn.style.opacity=dropBtn.disabled?"0.42":"1";}
 
   // Stalk warning: ghost is watching from afar
   const stalkWarn = document.getElementById("stalkWarn");
@@ -56376,6 +56593,7 @@ function tickStats(dt){
   const closeness=S.monDist<14?(14-S.monDist)/14:0;
   const fear=(100-S.sanity)/100;
   heartIntensity = S.hiding ? Math.max(closeness*0.3, fear*0.2) : Math.max(closeness,fear*0.6);
+  if(heartIntensity>0.02) startHeartbeat();
   // raspy breathing audible only when it's close (but not while hiding)
   setBreath(!S.hiding && S.monDist<8 ? Math.min(0.8,(8-S.monDist)/8*0.9) : 0);
 
@@ -56387,30 +56605,50 @@ function tickStats(dt){
 
 /* ---------------- Door visual ---------------- */
 function updateDoor(time){
-  if(S.doorUnlocked){
-    doorMat.color.set(0x2e7d32); doorMat.emissive.set(0x21ff5a);
-    doorMat.emissiveIntensity=0.6+Math.sin(time*4)*0.4;
-    doorLight.color.set(0x33ff77); doorLight.intensity=4;
+  if(door.userData.unlocked!==S.doorUnlocked){
+    door.userData.unlocked=S.doorUnlocked;
+    if(S.doorUnlocked){
+      doorMat.color.set(0x2e7d32); doorMat.emissive.set(0x21ff5a);
+      doorLight.color.set(0x33ff77); doorLight.intensity=3.2;
+    } else {
+      doorMat.color.set(0x5a1414); doorMat.emissive.set(0xff2200); doorMat.emissiveIntensity=0.25;
+      doorLight.color.set(0xff3322); doorLight.intensity=1.5;
+    }
   }
+  if(S.doorUnlocked) doorMat.emissiveIntensity=0.45+Math.sin(time*2.2)*0.16;
 }
 
-/* ---------------- Item idle animation ---------------- */
-function updateItems(time){
-  for(const it of items){
-    if(it.collected) continue;
-    it.spin.rotation.y=time*1.2;
-    it.spin.position.y=1.0+Math.sin(time*2+it.x)*0.15;
+/* ---------------- Item animation + safe dropped-key physics ---------------- */
+function updateItems(time,dt){
+  for(const item of items){
+    if(item.collected) continue;
+    if(item.dropped){
+      const oldX=item.group.position.x,oldZ=item.group.position.z;
+      const tx=oldX+item.velocityX*dt,tz=oldZ+item.velocityZ*dt;
+      const [x,z]=resolve(oldX,oldZ,tx,tz,0.18);
+      if(Math.abs(x-tx)>0.025) item.velocityX*=-0.18;
+      if(Math.abs(z-tz)>0.025) item.velocityZ*=-0.18;
+      item.group.position.x=x;item.group.position.z=z;item.x=x;item.z=z;
+      item.velocityX*=Math.exp(-2.5*dt);item.velocityZ*=Math.exp(-2.5*dt);
+      item.velocityY-=9.8*dt;
+      item.spin.position.y+=item.velocityY*dt;
+      if(item.spin.position.y<item.restHeight){
+        item.spin.position.y=item.restHeight;
+        if(Math.abs(item.velocityY)>0.55) item.velocityY=-item.velocityY*0.18;
+        else item.velocityY=0;
+      }
+      item.spin.rotation.y+=dt*1.6;
+      item.hitTarget.position.y=0.25+Math.max(0,item.spin.position.y-item.restHeight)*0.28;
+      item.light.position.y=0.28; item.light.intensity=0.48;
+    } else {
+      item.spin.rotation.y=time*1.2;
+      item.spin.position.y=0.95+Math.sin(time*2+item.x)*0.12;
+      item.hitTarget.position.y=item.spin.position.y;
+    }
   }
 }
 
 /* ---------------- Game flow ---------------- */
-function buildItems(){
-  for(const it of items){ scene.remove(it.group); }
-  items.length=0;
-  keysPos.forEach(k=>items.push(makeKey(k.x,k.z)));
-  batsPos.forEach(b=>items.push(makeBat(b.x,b.z)));
-}
-
 /* ---------------- Landscape lock (mobile, PUBG-style) ---------------- */
 // Try to force landscape via the Fullscreen + Screen Orientation APIs (Android
 // Chrome supports this combo well). iOS Safari doesn't allow orientation lock at
@@ -56437,9 +56675,16 @@ addEventListener("resize", updateRotatePrompt);
 addEventListener("orientationchange", updateRotatePrompt);
 
 function startGame(){
-  initAudio(); if(actx.state==="suspended") actx.resume(); startAmbience();
+  initAudio(); if(actx&&actx.state==="suspended") actx.resume(); startAmbience();
   resetState();
+  for(const code in keyState) keyState[code]=false;
+  fDown=false;interactDown=false;touch.mx=0;touch.mz=0;touch.run=false;touch.active=false;
+  document.getElementById("btnRun").classList.remove("active");
   S.status="playing"; S.startTime=performance.now();
+  document.getElementById("pauseScreen").classList.remove("show");
+  document.getElementById("notePanel").classList.remove("show");
+  resetMemorySites(); hallucinationSprite.visible=false; hallucinationMat.opacity=0;
+  keyRecoveryClock=0;
   tryLockLandscape();
   updateRotatePrompt();
   // reset positions
@@ -56448,8 +56693,10 @@ function startGame(){
   mon.goal=null; mon.repath=0; mon.rot=0;
   mon.lostT=0; mon.blinkT=5; mon.frozen=false;
   mon.state="WANDER";
-  mon.aiLastDecision = 0;
-  mon.aiDecisionInterval = 2000; // AI decides every 2 seconds
+  mon.pathTimer=0; mon.pathStep=null; mon.pathFromCell=-1; mon.pathGoalCell=-1;
+  mon.flankTarget=null; mon.flankingCooldown=0; mon.strategicCooldown=0; mon.feinting=false; mon.feintBurst=0;
+  mon.hallucinationTimer=18+Math.random()*12; mon.visited.clear(); GhostDirector.reset();
+  S.seen=false; S.monStalking=false;
   
   S.trapStun=0;
   nextScareAt=performance.now()+8000; scheduleAmbientScare();
@@ -56459,16 +56706,6 @@ function startGame(){
   
   spawnItemsAndGhost();
   buildTraps(DIFF.traps);
-  
-  // Load AI model if AI difficulty selected
-  if (DIFF.useAI && !AIGhost.loaded && !AIGhost.loading) {
-    showMsg("Loading AI brain... She's learning. 🧠", 4000);
-    AIGhost.load().then(() => {
-      if (AIGhost.loaded) {
-        showMsg("AI loaded. She's watching. She's learning. She's hungry.", 3000);
-      }
-    });
-  }
   
   resetDiscovery();
   summonSprite.visible=false;
@@ -56480,7 +56717,9 @@ function startGame(){
 function win(){
   if(S.status!=="playing") return;
   S.status="won"; S.endTime=performance.now();
-  document.exitPointerLock(); winChime(); triggerDialogue("win", 0); showScreen();
+  document.getElementById("pauseScreen").classList.remove("show");
+  document.getElementById("notePanel").classList.remove("show");
+  if(document.exitPointerLock) document.exitPointerLock(); winChime(); triggerDialogue("win", 0); showScreen();
   updateRotatePrompt();
   if(document.fullscreenElement) document.exitFullscreen().catch(()=>{});
 }
@@ -56488,7 +56727,9 @@ let deathAnimation = false;
 function die(){
   if(S.status!=="playing") return;
   S.status="dead"; S.endTime=performance.now(); S.flash=1;
-  document.exitPointerLock();
+  document.getElementById("pauseScreen").classList.remove("show");
+  document.getElementById("notePanel").classList.remove("show");
+  if(document.exitPointerLock) document.exitPointerLock();
   triggerDialogue("death", 0);
   
   // 3D LUNGE: Teleport ghost right in front of camera
@@ -56693,7 +56934,6 @@ async function validateAIKey(provider, key){
 let chosenDiff = "normal";
 function bindLobbyOnce(){
   try {
-    console.log('bindLobbyOnce: Starting...');
     const inner = document.getElementById("screenInner");
     if (!inner) {
       console.error('bindLobbyOnce: screenInner not found');
@@ -56707,12 +56947,10 @@ function bindLobbyOnce(){
     }
     
     if (pb.dataset.bound) {
-      console.log('bindLobbyOnce: Already bound');
       return;
     }
     
     pb.dataset.bound = "1";
-    console.log('bindLobbyOnce: Binding difficulty buttons...');
 
     // difficulty selection
     inner.querySelectorAll(".diff-btn").forEach(b => {
@@ -56723,14 +56961,6 @@ function bindLobbyOnce(){
           chosenDiff = b.dataset.d;
           document.getElementById("diffDesc").textContent = DIFFICULTY[chosenDiff].desc;
           
-          // Warn if AI mode selected but Transformers.js not loaded
-          if (chosenDiff === 'ai' && !window.transformersPipeline) {
-            document.getElementById("diffDesc").textContent = "⚠️ AI library failed to load. AI mode will use enhanced scripted intelligence instead.";
-            document.getElementById("diffDesc").style.color = "#ff6600";
-          } else {
-            document.getElementById("diffDesc").style.color = "";
-          }
-          console.log('Difficulty selected:', chosenDiff);
         } catch (err) {
           console.error('Difficulty button error:', err);
         }
@@ -56834,10 +57064,8 @@ function bindLobbyOnce(){
   bindCheck("setGrain","grain"); bindCheck("setShake","shake"); bindCheck("setBlood","blood");
   bindCheck("setBlur","blur"); bindCheck("setFlicker","flicker"); bindCheck("setSubtitles","subtitles");
 
-  console.log('bindLobbyOnce: Binding play button...');
   pb.onclick = () => {
     try {
-      console.log('Play button clicked!');
       DIFF = DIFFICULTY[chosenDiff];
       AI_KEY = aiK.value.trim();
       AI_PROVIDER = aiProv.value;
@@ -56849,7 +57077,6 @@ function bindLobbyOnce(){
   };
 
   applySettings();
-  console.log('bindLobbyOnce: Complete! All buttons bound.');
 } catch (err) {
   console.error('bindLobbyOnce fatal error:', err);
   alert('Error initializing lobby: ' + err.message);
@@ -56873,7 +57100,6 @@ function syncSettingsUI(){
 }
 
 function showScreen(){
-  console.log('showScreen: Starting, status =', S.status);
   const scr = document.getElementById("screen");
   const inner = document.getElementById("screenInner");
   if (!scr || !inner) {
@@ -56885,7 +57111,6 @@ function showScreen(){
   if (typeof hud !== 'undefined' && hud) hud.style.display = "none";
 
   if(S.status === "menu"){
-    console.log('showScreen: Calling bindLobbyOnce...');
     bindLobbyOnce();
   } else {
     const isDead = S.status === "dead";
@@ -57003,50 +57228,54 @@ addEventListener("keydown",e=>{
 });
 
 /* ---------------- Main loop ---------------- */
-let last=performance.now();
-let loopErrorCount = 0;
+let last=performance.now(),lastRenderAt=0,hudAccumulator=0;
+let loopErrorCount=0;
 function loop(now){
   try {
     requestAnimationFrame(loop);
-    const dt=Math.min((now-last)/1000,0.05); last=now;
+    const frameSeconds=Math.max(0,(now-last)/1000);
+    const dt=Math.min(frameSeconds,0.05); last=now;
     const time=now/1000;
+    updateDynamicResolution(frameSeconds,now);
+
+    // The hidden lobby canvas used to render the full scene at monitor refresh rate.
+    // At 24 Hz it remains atmospheric while saving GPU time whenever the game is idle/paused.
+    if(S.status!=="playing" && now-lastRenderAt<42) return;
 
     if(S.status==="playing"){
-      // Wrap each update function in try-catch to prevent one failure from crashing everything
-      try { updatePlayer(dt); } catch(e) { console.error("updatePlayer error:", e); }
-      try { updateMonster(dt,time); } catch(e) { console.error("updateMonster error:", e); }
-      try { updateAmbientScares(); } catch(e) { console.error("updateAmbientScares error:", e); }
-      try { updateSummon(); } catch(e) { console.error("updateSummon error:", e); }
-      try { updateTraps(); } catch(e) { console.error("updateTraps error:", e); }
-      try { updateRedLights(time); } catch(e) { console.error("updateRedLights error:", e); }
-      try { updateDust(time); } catch(e) { console.error("updateDust error:", e); }
-      try { updateFog(time); } catch(e) { console.error("updateFog error:", e); }
-      try { updateFlash(dt); } catch(e) { console.error("updateFlash error:", e); }
-      try { tickStats(dt); } catch(e) { console.error("tickStats error:", e); }
-      try { updateItems(time); } catch(e) { console.error("updateItems error:", e); }
-      try { updateDoor(time); } catch(e) { console.error("updateDoor error:", e); }
-      try { updateHUD(); } catch(e) { console.error("updateHUD error:", e); }
-      try { updateMinimap(); } catch(e) { console.error("updateMinimap error:", e); }
-    }
-    // keep red lights flickering on menu too for atmosphere
-    if(S.status!=="playing") {
-      try { updateRedLights(time); } catch(e) { console.error("updateRedLights error:", e); }
+      try { updatePlayer(dt); } catch(e) { console.error("updatePlayer error:",e); }
+      try { updateMonster(dt,time); } catch(e) { console.error("updateMonster error:",e); }
+      try { updateMemoryEvents(dt); } catch(e) { console.error("updateMemoryEvents error:",e); }
+      try { updateAmbientScares(); } catch(e) { console.error("updateAmbientScares error:",e); }
+      try { updateSummon(); } catch(e) { console.error("updateSummon error:",e); }
+      try { updateFakeSighting(); } catch(e) { console.error("updateFakeSighting error:",e); }
+      try { updateTraps(); } catch(e) { console.error("updateTraps error:",e); }
+      try { updateRedLights(time); } catch(e) { console.error("updateRedLights error:",e); }
+      try { updateDust(time); } catch(e) { console.error("updateDust error:",e); }
+      try { updateFlash(dt); } catch(e) { console.error("updateFlash error:",e); }
+      try { tickStats(dt); } catch(e) { console.error("tickStats error:",e); }
+      try { updateItems(time,dt); recoverCriticalKeys(dt); } catch(e) { console.error("item update error:",e); }
+      try { updateDoor(time); } catch(e) { console.error("updateDoor error:",e); }
+      try { updateMinimap(); } catch(e) { console.error("updateMinimap error:",e); }
+      hudAccumulator+=dt;
+      if(hudAccumulator>=0.075){
+        try { updateHUD(); } catch(e) { console.error("updateHUD error:",e); }
+        hudAccumulator=0;
+      }
+    } else {
+      try { updateRedLights(time); } catch(e) { console.error("updateRedLights error:",e); }
     }
     renderer.render(scene,camera);
-    loopErrorCount = 0; // Reset error count on success
+    lastRenderAt=now;
+    loopErrorCount=0;
   } catch(err) {
     loopErrorCount++;
-    console.error("Game loop error:", err);
-    // If too many errors, show error message
-    if(loopErrorCount > 10){
-      showMsg("Game error - try refreshing", 5000);
-    }
+    console.error("Game loop error:",err);
+    if(loopErrorCount>10) showMsg("Game error — try refreshing",5000);
   }
 }
 
-showScreen();
 requestAnimationFrame(loop);
 
-</script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a16dba018c148fa7',t:'MTc4MzMzMTY1MA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</script></body>
 </html>
